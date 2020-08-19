@@ -3,7 +3,9 @@ module github.com/x893675/gocron
 go 1.14
 
 require (
-	github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633
+	github.com/emicklei/go-restful v2.9.6+incompatible
+	github.com/emicklei/go-restful-openapi v1.4.1
+	github.com/go-playground/validator/v10 v10.3.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.9
 	github.com/kr/pretty v0.2.1 // indirect
@@ -18,3 +20,5 @@ require (
 	k8s.io/klog/v2 v2.3.0
 	xorm.io/core v0.7.2-0.20190928055935-90aeac8d08eb
 )
+
+replace github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.12.0+incompatible

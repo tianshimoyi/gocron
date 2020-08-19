@@ -1,15 +1,18 @@
 package app
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/x893675/gocron/cmd/gocron-server/app/options"
 	"github.com/x893675/gocron/internal/apiserver"
+	"github.com/x893675/gocron/pkg/client/database"
 	serverConfig "github.com/x893675/gocron/pkg/config"
 	"github.com/x893675/gocron/pkg/utils/signals"
 	"github.com/x893675/gocron/pkg/utils/term"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	cliflag "k8s.io/component-base/cli/flag"
+	"net/http"
 )
 
 func NewGoCronServerCommand() *cobra.Command {
@@ -69,5 +72,27 @@ func Run(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 }
 
 func NewApiServer(s *options.ServerRunOptions, stopCh <-chan struct{}) (*apiserver.APIServer, error) {
-	return nil, nil
+	apiServer := &apiserver.APIServer{
+		Config: s.Config,
+	}
+
+	dbClient, err := database.NewDatabaseClient(s.DatabaseOptions, stopCh)
+	if err != nil {
+		return nil, err
+	}
+	apiServer.Db = dbClient
+
+	server := &http.Server{
+		Addr: fmt.Sprintf(":%d", s.GenericServerRunOptions.InsecurePort),
+	}
+	if s.GenericServerRunOptions.SecurePort != 0 {
+		certificate, err := tls.LoadX509KeyPair(s.GenericServerRunOptions.TlsCertFile, s.GenericServerRunOptions.TlsPrivateKey)
+		if err != nil {
+			return nil, err
+		}
+		server.TLSConfig.Certificates = []tls.Certificate{certificate}
+	}
+	apiServer.Server = server
+
+	return apiServer, nil
 }

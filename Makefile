@@ -14,3 +14,9 @@ checkfmt:
 		echo "$${res}"; \
 		exit 1; \
 	fi
+
+swagger:
+	go run tools/doc-gen/main.go --output=swagger-ui/swagger.json
+
+swagger-server:
+	go run swagger-ui/swagger.go

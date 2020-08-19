@@ -10,7 +10,7 @@ import (
 )
 
 type Client struct {
-	*xorm.Engine
+	db *xorm.Engine
 }
 
 func NewDatabaseClient(options *Options, stopCh <-chan struct{}) (*Client, error) {
@@ -38,7 +38,7 @@ func NewDatabaseClient(options *Options, stopCh <-chan struct{}) (*Client, error
 		}
 	}()
 
-	return &Client{engine}, nil
+	return &Client{db: engine}, nil
 }
 
 func NewDatabaseClientOrDie(options *Options, stopCh <-chan struct{}) *Client {
@@ -48,4 +48,12 @@ func NewDatabaseClientOrDie(options *Options, stopCh <-chan struct{}) *Client {
 		panic(err)
 	}
 	return c
+}
+
+func (c *Client) DB() *xorm.Engine {
+	if c == nil {
+		klog.Warning("database client is nil")
+		return nil
+	}
+	return c.db
 }
