@@ -1,0 +1,940 @@
+apiVersion: v1
+data:
+  swagger.json: |
+    {
+      "swagger": "2.0",
+      "info": {
+        "description": "gocron server OpenAPI",
+        "title": "gocron api server",
+        "contact": {
+          "name": "api server",
+          "url": "http://localhost:8080",
+          "email": "example@example.com"
+        },
+        "license": {
+          "name": "Apache",
+          "url": "http://www.apache.org/licenses/"
+        },
+        "version": "1.0.0",
+        "x-taggroups": [
+          {
+            "name": "Task",
+            "tags": [
+              "Task"
+            ]
+          },
+          {
+            "name": "System",
+            "tags": [
+              "Node"
+            ]
+          }
+        ]
+      },
+      "paths": {
+        "/api/core/v1/tasks": {
+          "get": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "List task",
+            "operationId": "ListTask",
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/models.Task"
+                  }
+                }
+              }
+            }
+          },
+          "post": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "Create task",
+            "operationId": "CreateTask",
+            "parameters": [
+              {
+                "name": "body",
+                "in": "body",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/schema.TaskRequest"
+                }
+              }
+            ],
+            "responses": {
+              "201": {
+                "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource.",
+                "schema": {
+                  "$ref": "#/definitions/models.Task"
+                }
+              }
+            }
+          }
+        },
+        "/api/core/v1/tasks/{task}": {
+          "get": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "get task",
+            "operationId": "GetTask",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
+                "schema": {
+                  "$ref": "#/definitions/models.Task"
+                }
+              }
+            }
+          },
+          "delete": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "delete task",
+            "operationId": "DeleteTask",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              }
+            }
+          },
+          "head": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "check task exist",
+            "operationId": "GetTask",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              },
+              "404": {
+                "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+              }
+            }
+          }
+        },
+        "/api/core/v1/tasks/{task}/disable": {
+          "patch": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "disable task",
+            "operationId": "DisableTask",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              }
+            }
+          }
+        },
+        "/api/core/v1/tasks/{task}/enable": {
+          "patch": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "enable task",
+            "operationId": "EnableTask",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              }
+            }
+          }
+        },
+        "/api/core/v1/tasks/{task}/logs": {
+          "get": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "run task",
+            "operationId": "GetTaskLog",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/models.TaskLog"
+                  }
+                }
+              }
+            }
+          },
+          "delete": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "run task",
+            "operationId": "ClearTaskLog",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/models.TaskLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/api/core/v1/tasks/{task}/run": {
+          "post": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "run task",
+            "operationId": "RunTask",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              }
+            }
+          }
+        },
+        "/api/core/v1/tasks/{task}/stop": {
+          "post": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Task"
+            ],
+            "summary": "stop running task",
+            "operationId": "StopTask",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "task id",
+                "name": "task",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              }
+            }
+          }
+        },
+        "/api/system/v1/nodes": {
+          "get": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Node"
+            ],
+            "summary": "List host",
+            "operationId": "ListNode",
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/models.Host"
+                  }
+                }
+              }
+            }
+          },
+          "post": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Node"
+            ],
+            "summary": "Add host",
+            "operationId": "AddNode",
+            "parameters": [
+              {
+                "name": "body",
+                "in": "body",
+                "required": true,
+                "schema": {
+                  "$ref": "#/definitions/schema.TaskRequest"
+                }
+              }
+            ],
+            "responses": {
+              "201": {
+                "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource.",
+                "schema": {
+                  "$ref": "#/definitions/models.Host"
+                }
+              }
+            }
+          }
+        },
+        "/api/system/v1/nodes/{node}": {
+          "get": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Node"
+            ],
+            "summary": "Get host",
+            "operationId": "GetNode",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "node id",
+                "name": "node",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
+                "schema": {
+                  "$ref": "#/definitions/models.Host"
+                }
+              }
+            }
+          },
+          "delete": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Node"
+            ],
+            "summary": "Delete host",
+            "operationId": "DeleteNode",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "node id",
+                "name": "node",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              },
+              "404": {
+                "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+              }
+            }
+          },
+          "head": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Node"
+            ],
+            "summary": "Check host exist",
+            "operationId": "GetNode",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "node id",
+                "name": "node",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              },
+              "404": {
+                "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+              }
+            }
+          }
+        },
+        "/api/system/v1/nodes/{node}/ping": {
+          "get": {
+            "produces": [
+              "application/json"
+            ],
+            "tags": [
+              "Node"
+            ],
+            "summary": "Check host exist",
+            "operationId": "PingNode",
+            "parameters": [
+              {
+                "type": "string",
+                "description": "node id",
+                "name": "node",
+                "in": "path",
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+              },
+              "404": {
+                "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+              }
+            }
+          }
+        }
+      },
+      "definitions": {
+        "models.Host": {
+          "required": [
+            "id",
+            "name",
+            "alias",
+            "port",
+            "remark"
+          ],
+          "properties": {
+            "alias": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer",
+              "format": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "remark": {
+              "type": "string"
+            }
+          }
+        },
+        "models.Task": {
+          "required": [
+            "id",
+            "name",
+            "level",
+            "dependency_task_id",
+            "dependency_status",
+            "spec",
+            "protocol",
+            "command",
+            "http_method",
+            "timeout",
+            "multi",
+            "retry_times",
+            "retry_interval",
+            "notify_status",
+            "notify_type",
+            "notify_receiver_id",
+            "notify_keyword",
+            "tag",
+            "remark",
+            "status",
+            "created",
+            "deleted",
+            "hosts",
+            "next_run_time"
+          ],
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "created": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "deleted": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "dependency_status": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "dependency_task_id": {
+              "type": "string"
+            },
+            "hosts": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.TaskHostDetail"
+              }
+            },
+            "http_method": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "level": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "multi": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "name": {
+              "type": "string"
+            },
+            "next_run_time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "notify_keyword": {
+              "type": "string"
+            },
+            "notify_receiver_id": {
+              "type": "string"
+            },
+            "notify_status": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "notify_type": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "protocol": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "remark": {
+              "type": "string"
+            },
+            "retry_interval": {
+              "type": "integer",
+              "format": "integer"
+            },
+            "retry_times": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "spec": {
+              "type": "string"
+            },
+            "status": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "timeout": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        },
+        "models.TaskHostDetail": {
+          "required": [
+            "task_id",
+            "host_id",
+            "id",
+            "name",
+            "port",
+            "alias"
+          ],
+          "properties": {
+            "alias": {
+              "type": "string"
+            },
+            "host_id": {
+              "type": "integer",
+              "format": "integer"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "name": {
+              "type": "string"
+            },
+            "port": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "task_id": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        },
+        "models.TaskLog": {
+          "required": [
+            "id",
+            "task_id",
+            "name",
+            "spec",
+            "protocol",
+            "command",
+            "timeout",
+            "retry_times",
+            "hostname",
+            "start_time",
+            "end_time",
+            "status",
+            "result",
+            "total_time"
+          ],
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "end_time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "hostname": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "name": {
+              "type": "string"
+            },
+            "protocol": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "result": {
+              "type": "string"
+            },
+            "retry_times": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "spec": {
+              "type": "string"
+            },
+            "start_time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "status": {
+              "type": "integer",
+              "format": "byte"
+            },
+            "task_id": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "timeout": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "total_time": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        },
+        "schema.TaskRequest": {
+          "required": [
+            "level",
+            "dependency_status",
+            "name",
+            "spec",
+            "protocol",
+            "command",
+            "hosts"
+          ],
+          "properties": {
+            "command": {
+              "description": "shell command or http url",
+              "type": "string"
+            },
+            "dependency_status": {
+              "description": "task dependency status",
+              "type": "integer",
+              "format": "byte",
+              "enum": [
+                "1",
+                "2"
+              ]
+            },
+            "dependency_task_id": {
+              "description": "dependency task id",
+              "type": "string"
+            },
+            "hosts": {
+              "description": "host ids",
+              "type": "string"
+            },
+            "http_method": {
+              "description": "get or post",
+              "type": "integer",
+              "format": "byte",
+              "enum": [
+                "1",
+                "2"
+              ]
+            },
+            "level": {
+              "description": "task level",
+              "type": "integer",
+              "format": "byte",
+              "enum": [
+                "1",
+                "2"
+              ]
+            },
+            "multi": {
+              "description": "allow multi task run the same time, default is false",
+              "type": "integer",
+              "format": "byte"
+            },
+            "name": {
+              "description": "task name",
+              "type": "string"
+            },
+            "notify_keyword": {
+              "description": "notify keyword",
+              "type": "string"
+            },
+            "notify_receiver_id": {
+              "description": "notify receivers",
+              "type": "string"
+            },
+            "notify_status": {
+              "description": "notify status",
+              "type": "integer",
+              "format": "byte"
+            },
+            "notify_type": {
+              "description": "notify type",
+              "type": "integer",
+              "format": "byte"
+            },
+            "protocol": {
+              "description": "task protocol type,shell or http",
+              "type": "integer",
+              "format": "byte",
+              "enum": [
+                "1",
+                "2"
+              ]
+            },
+            "remark": {
+              "description": "task remark",
+              "type": "string"
+            },
+            "retry_interval": {
+              "description": "retry interval, second",
+              "type": "integer",
+              "format": "integer"
+            },
+            "retry_times": {
+              "description": "task retry times when task run failed",
+              "type": "integer",
+              "format": "byte"
+            },
+            "spec": {
+              "description": "crontab expression",
+              "type": "string"
+            },
+            "tag": {
+              "description": "task tag",
+              "type": "string"
+            },
+            "timeout": {
+              "description": "task timeout, second, 0 is not limit",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "securityDefinitions": {
+        "Bearer": {
+          "type": "apiKey",
+          "name": "Authorization",
+          "in": "header"
+        }
+      },
+      "security": [
+        {
+          "Bearer": []
+        }
+      ]
+    }
+kind: ConfigMap
+metadata:
+  name: swagger-file
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: swagger-ui
+  labels:
+    app: swagger-ui
+    tier: swagger
+spec:
+  selector:
+    app: swagger-ui
+    tier: swagger
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swagger-ui
+  labels:
+    app: swagger-ui
+    tier: swagger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: swagger-ui
+      tier: swagger
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: swagger-ui
+        tier: swagger
+    spec:
+      containers:
+        - name: swaggerui
+          image: swaggerapi/swagger-ui:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: swaggerfile
+              mountPath: /app/swagger.json
+              subPath: swagger.json
+      volumes:
+        - name: swaggerfile
+          configMap:
+            name: swagger-file
+            items:
+              - key: swagger.json
+                path: swagger.json
