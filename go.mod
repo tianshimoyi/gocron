@@ -5,9 +5,12 @@ go 1.14
 require (
 	github.com/emicklei/go-restful v2.9.6+incompatible
 	github.com/emicklei/go-restful-openapi v1.4.1
+	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.9
+	github.com/golang/protobuf v1.3.3
+	google.golang.org/grpc v1.27.1
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-sqlite3 v1.10.0

@@ -1,6 +1,5 @@
 package models
 
-
 // 主机
 type Host struct {
 	Id        int16  `json:"id" xorm:"smallint pk autoincr"`
@@ -11,7 +10,6 @@ type Host struct {
 	BaseModel `json:"-" xorm:"-"`
 	Selected  bool `json:"-" xorm:"-"`
 }
-
 
 type HostStore interface {
 	Create() (insertId int16, err error)

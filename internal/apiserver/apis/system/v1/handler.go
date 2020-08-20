@@ -13,7 +13,6 @@ func newSystemHandler(hostModel models.HostStore) *systemHandler {
 	return &systemHandler{hostModel: hostModel}
 }
 
-
 func (s *systemHandler) AddNode(request *restful.Request, response *restful.Response) {
 
 }

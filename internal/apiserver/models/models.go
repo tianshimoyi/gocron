@@ -52,5 +52,3 @@ func (model *BaseModel) parsePageAndPageSize(params CommonMap) {
 func (model *BaseModel) pageLimitOffset() int {
 	return (model.Page - 1) * model.PageSize
 }
-
-

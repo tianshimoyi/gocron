@@ -1,6 +1,5 @@
 package models
 
-
 type TaskHost struct {
 	Id     int   `json:"id" xorm:"int pk autoincr"`
 	TaskId int   `json:"task_id" xorm:"int not null index"`
