@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"github.com/x893675/gocron/cmd/gocron-agent/app/options"
 	"github.com/x893675/gocron/pkg/pb"
+	"github.com/x893675/gocron/pkg/version"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+	"k8s.io/klog/v2"
 	"net"
 	"time"
 )
@@ -44,6 +46,7 @@ func (s *Server) Serve(stopCh <-chan struct{}) error {
 		server.GracefulStop()
 	}()
 
+	klog.V(0).Info("gocron agent version is ", version.Version.String())
 	return server.Serve(l)
 
 }

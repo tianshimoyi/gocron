@@ -3,6 +3,7 @@ module github.com/x893675/gocron
 go 1.14
 
 require (
+	github.com/coreos/go-semver v0.3.0
 	github.com/emicklei/go-restful v2.9.6+incompatible
 	github.com/emicklei/go-restful-openapi v1.4.1
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
@@ -10,7 +11,6 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.9
 	github.com/golang/protobuf v1.3.3
-	google.golang.org/grpc v1.27.1
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-sqlite3 v1.10.0
@@ -18,6 +18,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	google.golang.org/grpc v1.27.1
 	k8s.io/apimachinery v0.18.8
 	k8s.io/component-base v0.18.8
 	k8s.io/klog/v2 v2.3.0
