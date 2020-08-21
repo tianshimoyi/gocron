@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/x893675/gocron/cmd/gocron-agent/app/options"
 	"github.com/x893675/gocron/pkg/pb"
+	"github.com/x893675/gocron/pkg/utils/shellutils"
 	"github.com/x893675/gocron/pkg/version"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -18,7 +19,23 @@ type Server struct {
 }
 
 func (s *Server) Run(ctx context.Context, req *pb.TaskRequest) (*pb.TaskResponse, error) {
-	return nil, nil
+	defer func() {
+		if err := recover(); err != nil {
+			klog.Error(err)
+		}
+	}()
+	klog.V(1).Infof("execute cmd start: [id: %d cmd: %s]", req.Id, req.Command)
+	resp := &pb.TaskResponse{}
+	output, err := shellutils.ExecShell(ctx, req.Command)
+	if err != nil {
+		klog.Errorf("execute cmd error %v", err)
+		resp.Error = err.Error()
+	} else {
+		resp.Error = ""
+	}
+	resp.Output = output
+	klog.V(1).Infof("execute cmd end: [id: %d cmd: %s err: %s]", req.Id, req.Command, resp.Error)
+	return resp, nil
 }
 
 func (s *Server) Serve(stopCh <-chan struct{}) error {
