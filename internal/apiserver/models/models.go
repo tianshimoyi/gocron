@@ -27,6 +27,13 @@ const (
 	dbMaxLiftTime  = 2 * time.Hour
 )
 
+type Model struct {
+	ID        uint      `xorm:"pk autoincr index"`
+	CreatedAt time.Time `xorm:"created index"`
+	UpdatedAt time.Time `xorm:"updated index"`
+	//DeletedAt *time.Time `xorm:"deleted"`
+}
+
 type BaseModel struct {
 	Page     int `xorm:"-"`
 	PageSize int `xorm:"-"`

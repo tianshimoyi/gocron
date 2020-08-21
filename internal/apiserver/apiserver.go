@@ -5,6 +5,7 @@ import (
 	"github.com/emicklei/go-restful"
 	coreV1 "github.com/x893675/gocron/internal/apiserver/apis/core/v1"
 	systemV1 "github.com/x893675/gocron/internal/apiserver/apis/system/v1"
+	"github.com/x893675/gocron/internal/apiserver/models"
 	"github.com/x893675/gocron/pkg/client/database"
 	"github.com/x893675/gocron/pkg/config"
 	"github.com/x893675/gocron/pkg/server/filter"
@@ -22,6 +23,7 @@ type APIServer struct {
 	Config *config.Config
 	// http server
 	Server *http.Server
+	//
 }
 
 func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
@@ -37,7 +39,7 @@ func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
 		klog.V(2).Infof("%s", ws.RootPath())
 	}
 	s.Server.Handler = s.container
-	return nil
+	return s.Migration()
 }
 
 func (s *APIServer) Run(stopCh <-chan struct{}) error {
@@ -60,4 +62,8 @@ func (s *APIServer) Run(stopCh <-chan struct{}) error {
 func (s *APIServer) InstallAPIs() {
 	urlruntime.Must(coreV1.AddToContainer(s.container, s.Db))
 	urlruntime.Must(systemV1.AddToContainer(s.container, s.Db))
+}
+
+func (s *APIServer) Migration() error {
+	return s.Db.DB().Sync2(new(models.Host))
 }

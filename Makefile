@@ -1,7 +1,7 @@
 apps = 'gocron-agent' 'gocron-server'
 
 .PHONY: build
-build:
+build: fmt checkfmt
 	for app in $(apps) ;\
 	do \
 		CGO_ENABLED=0 go build -o dist/$$app -a -ldflags "-w -s" ./cmd/$$app;\

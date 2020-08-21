@@ -75,6 +75,9 @@ func (m *Options) AddFlags(fs *pflag.FlagSet, c *Options) {
 	fs.DurationVar(&m.MaxConnectionLifeTime, "db-max-connection-life-time", c.MaxConnectionLifeTime, ""+
 		"Maximum connection life time allowed to connecto to db.")
 
+	fs.StringVar(&m.DBName, "db-name", c.DBName, ""+
+		"Database name.")
+
 	fs.BoolVar(&m.Debug, "db-debug", c.Debug, ""+
 		"enable / disable database log")
 }
