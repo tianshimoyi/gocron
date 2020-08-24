@@ -220,7 +220,7 @@
         "tags": [
           "Task"
         ],
-        "summary": "run task",
+        "summary": "get task log",
         "operationId": "GetTaskLog",
         "parameters": [
           {
@@ -250,7 +250,7 @@
         "tags": [
           "Task"
         ],
-        "summary": "run task",
+        "summary": "clear task log",
         "operationId": "ClearTaskLog",
         "parameters": [
           {
@@ -336,14 +336,34 @@
         ],
         "summary": "List host",
         "operationId": "ListNode",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "limit=%d,page=%d",
+            "default": "limit=10,page=1",
+            "description": "paging query, e.g. limit=100,page=1",
+            "name": "paging",
+            "in": "query"
+          },
+          {
+            "type": "bool",
+            "default": false,
+            "description": "revers result",
+            "name": "reverse",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/models.Host"
-              }
+              "$ref": "#/definitions/restplus.PageableResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
             }
           }
         }
@@ -363,15 +383,30 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/schema.TaskRequest"
+              "$ref": "#/definitions/schema.NodeRequest"
             }
           }
         ],
         "responses": {
           "201": {
-            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource.",
+            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource."
+          },
+          "400": {
+            "description": "Bad Request. It is used to indicate that incorrect parameters were passed to the request.",
             "schema": {
-              "$ref": "#/definitions/models.Host"
+              "$ref": "#/definitions/restful.ServiceError"
+            }
+          },
+          "409": {
+            "description": "Already exists",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
             }
           }
         }
@@ -390,7 +425,7 @@
         "parameters": [
           {
             "type": "string",
-            "description": "node id",
+            "description": "node id or node name",
             "name": "node",
             "in": "path",
             "required": true
@@ -401,6 +436,55 @@
             "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
             "schema": {
               "$ref": "#/definitions/models.Host"
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
+          }
+        }
+      },
+      "put": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Node"
+        ],
+        "summary": "Update host",
+        "operationId": "UpdateNode",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/schema.NodeRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+          },
+          "400": {
+            "description": "Bad Request. It is used to indicate that incorrect parameters were passed to the request.",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
+          },
+          "409": {
+            "description": "Already exists",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
             }
           }
         }
@@ -429,6 +513,12 @@
           },
           "404": {
             "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
           }
         }
       },
@@ -440,11 +530,11 @@
           "Node"
         ],
         "summary": "Check host exist",
-        "operationId": "GetNode",
+        "operationId": "CheckNodeExist",
         "parameters": [
           {
             "type": "string",
-            "description": "node id",
+            "description": "node id or node name",
             "name": "node",
             "in": "path",
             "required": true
@@ -456,6 +546,12 @@
           },
           "404": {
             "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
           }
         }
       }
@@ -492,16 +588,13 @@
   },
   "definitions": {
     "models.Host": {
-      "required": [
-        "id",
-        "name",
-        "alias",
-        "port",
-        "remark"
-      ],
       "properties": {
         "alias": {
           "type": "string"
+        },
+        "create_time": {
+          "type": "string",
+          "format": "date-time"
         },
         "id": {
           "type": "integer",
@@ -516,6 +609,10 @@
         },
         "remark": {
           "type": "string"
+        },
+        "update_time": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -641,9 +738,9 @@
     },
     "models.TaskHostDetail": {
       "required": [
+        "id",
         "task_id",
         "host_id",
-        "id",
         "name",
         "port",
         "alias"
@@ -741,6 +838,64 @@
         "total_time": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "restful.ServiceError": {
+      "required": [
+        "Code",
+        "Message"
+      ],
+      "properties": {
+        "Code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "Message": {
+          "type": "string"
+        }
+      }
+    },
+    "restplus.PageableResponse": {
+      "required": [
+        "items",
+        "total_count"
+      ],
+      "properties": {
+        "items": {
+          "description": "paging data",
+          "$ref": "#/definitions/restplus.PageableResponse.items"
+        },
+        "total_count": {
+          "description": "total count",
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "restplus.PageableResponse.items": {},
+    "schema.NodeRequest": {
+      "required": [
+        "name",
+        "port"
+      ],
+      "properties": {
+        "alias": {
+          "description": "alias name",
+          "type": "string"
+        },
+        "name": {
+          "description": "node name",
+          "type": "string"
+        },
+        "port": {
+          "description": "node port",
+          "type": "integer",
+          "format": "int32"
+        },
+        "remark": {
+          "description": "node remark",
+          "type": "string"
         }
       }
     },
