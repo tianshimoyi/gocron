@@ -24,7 +24,7 @@ func (t *hostStore) Create(ctx context.Context, host *models.Host) error {
 }
 
 func (t *hostStore) Update(ctx context.Context, host *models.Host) error {
-	_, err := t.db.ID(host.ID).Update(host)
+	_, err := t.db.ID(host.Id).Update(host)
 	if err != nil {
 		return err
 	}

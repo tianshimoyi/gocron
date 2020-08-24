@@ -6,6 +6,7 @@ import (
 	"github.com/x893675/gocron/internal/apiserver/constants"
 	"github.com/x893675/gocron/internal/apiserver/models"
 	hostImpl "github.com/x893675/gocron/internal/apiserver/models/impl/node"
+	"github.com/x893675/gocron/internal/apiserver/restplus"
 	taskSchema "github.com/x893675/gocron/internal/apiserver/schema"
 	"github.com/x893675/gocron/pkg/client/database"
 	"github.com/x893675/gocron/pkg/server/runtime"
@@ -26,32 +27,45 @@ func AddToContainer(c *restful.Container, dbClient *database.Client) error {
 		To(handler.AddNode).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.NodeResourceTag}).
 		Doc("Add host").
-		Reads(taskSchema.TaskRequest{}).
-		Returns(http.StatusCreated, constants.HTTP201, models.Host{}))
+		Reads(taskSchema.NodeRequest{}).
+		Returns(http.StatusCreated, constants.HTTP201, nil).
+		Returns(http.StatusBadRequest, constants.HTTP400, restful.ServiceError{}).
+		Returns(http.StatusConflict, constants.HTTP409, restful.ServiceError{}).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.GET("/nodes").
 		To(handler.ListNode).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.NodeResourceTag}).
 		Doc("List host").
+		Param(ws.QueryParameter(restplus.PagingParam, "paging query, e.g. limit=100,page=1").
+			Required(false).
+			DataFormat("limit=%d,page=%d").
+			DefaultValue("limit=10,page=1")).
+		Param(ws.QueryParameter(restplus.ReverseParam, "revers result").
+			Required(false).
+			DataType("bool").
+			DefaultValue("false")).
 		Writes([]models.Host{}).
-		Returns(http.StatusOK, constants.HTTP200, []models.Host{}))
+		Returns(http.StatusOK, constants.HTTP200, restplus.PageableResponse{}).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.GET("/nodes/{node}").
 		To(handler.GetNode).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.NodeResourceTag}).
-		Param(ws.PathParameter("node", "node id")).
+		Param(ws.PathParameter("node", "node id or node name")).
 		Doc("Get host").
 		Writes(models.Host{}).
-		Returns(http.StatusOK, constants.HTTP200, models.Host{}))
+		Returns(http.StatusOK, constants.HTTP200, models.Host{}).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.HEAD("/nodes/{node}").
-		To(handler.GetNode).
+		To(handler.CheckNodeExist).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.NodeResourceTag}).
 		Doc("Check host exist").
-		Param(ws.PathParameter("node", "node id")).
-		Writes(models.Host{}).
+		Param(ws.PathParameter("node", "node id or node name")).
 		Returns(http.StatusOK, constants.HTTP200, nil).
-		Returns(http.StatusNotFound, constants.HTTP404, nil))
+		Returns(http.StatusNotFound, constants.HTTP404, nil).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.DELETE("/nodes/{node}").
 		To(handler.DeleteNode).
@@ -59,7 +73,8 @@ func AddToContainer(c *restful.Container, dbClient *database.Client) error {
 		Param(ws.PathParameter("node", "node id")).
 		Doc("Delete host").
 		Returns(http.StatusOK, constants.HTTP200, nil).
-		Returns(http.StatusNotFound, constants.HTTP404, nil))
+		Returns(http.StatusNotFound, constants.HTTP404, nil).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.GET("/nodes/{node}/ping").
 		To(handler.PingNode).
@@ -69,6 +84,16 @@ func AddToContainer(c *restful.Container, dbClient *database.Client) error {
 		Writes(models.Host{}).
 		Returns(http.StatusOK, constants.HTTP200, nil).
 		Returns(http.StatusNotFound, constants.HTTP404, nil))
+
+	ws.Route(ws.PUT("/nodes/{node}").
+		To(handler.UpdateNode).
+		Metadata(restfulspec.KeyOpenAPITags, []string{constants.NodeResourceTag}).
+		Doc("Update host").
+		Reads(taskSchema.NodeRequest{}).
+		Returns(http.StatusCreated, constants.HTTP200, nil).
+		Returns(http.StatusBadRequest, constants.HTTP400, restful.ServiceError{}).
+		Returns(http.StatusConflict, constants.HTTP409, restful.ServiceError{}).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	c.Add(ws)
 	return nil

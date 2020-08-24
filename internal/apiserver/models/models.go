@@ -28,9 +28,9 @@ const (
 )
 
 type Model struct {
-	ID        uint      `xorm:"pk autoincr index"`
-	CreatedAt time.Time `xorm:"created index"`
-	UpdatedAt time.Time `xorm:"updated index"`
+	Id        uint       `json:"id,omitempty" xorm:"pk autoincr index"`
+	CreatedAt *time.Time `json:"create_time,omitempty" xorm:"created index"`
+	UpdatedAt *time.Time `json:"update_time,omitempty" xorm:"updated index"`
 	//DeletedAt *time.Time `xorm:"deleted"`
 }
 

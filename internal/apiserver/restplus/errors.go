@@ -1,0 +1,36 @@
+package restplus
+
+import (
+	"github.com/emicklei/go-restful"
+	"k8s.io/klog/v2"
+	"net/http"
+	"strings"
+)
+
+// Avoid emitting errors that look like valid HTML. Quotes are okay.
+var sanitizer = strings.NewReplacer(`&`, "&amp;", `<`, "&lt;", `>`, "&gt;")
+
+func HandleInternalError(response *restful.Response, req *restful.Request, err error) {
+	klog.Error("service internal error: %v", err)
+	_ = response.WriteServiceError(http.StatusInternalServerError, restful.ServiceError{Code: http.StatusInternalServerError, Message: sanitizer.Replace(err.Error())})
+}
+
+func HandleBadRequest(response *restful.Response, req *restful.Request, err error) {
+	klog.Error("service bad request error: %v", err)
+	_ = response.WriteServiceError(http.StatusBadRequest, restful.ServiceError{Code: http.StatusBadRequest, Message: sanitizer.Replace(err.Error())})
+}
+
+func HandleNotFound(response *restful.Response, req *restful.Request, err error) {
+	klog.Error("service not found error: %v", err)
+	_ = response.WriteServiceError(http.StatusNotFound, restful.ServiceError{Code: http.StatusNotFound, Message: sanitizer.Replace(err.Error())})
+}
+
+func HandleForbidden(response *restful.Response, req *restful.Request, err error) {
+	klog.Error("service forbidden error: %v", err)
+	_ = response.WriteServiceError(http.StatusForbidden, restful.ServiceError{Code: http.StatusForbidden, Message: sanitizer.Replace(err.Error())})
+}
+
+func HandleConflict(response *restful.Response, req *restful.Request, err error) {
+	klog.Error("service conflict error: %v", err)
+	_ = response.WriteServiceError(http.StatusConflict, restful.ServiceError{Code: http.StatusConflict, Message: sanitizer.Replace(err.Error())})
+}
