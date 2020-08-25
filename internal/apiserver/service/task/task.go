@@ -3,15 +3,13 @@ package task
 import (
 	"fmt"
 	"github.com/jakecoffman/cron"
-	"github.com/x893675/gocron/internal/apiserver/httpclient"
 	"github.com/x893675/gocron/internal/apiserver/models"
-	"github.com/x893675/gocron/internal/apiserver/rpc"
-	"github.com/x893675/gocron/pkg/pb"
+	taskImpl "github.com/x893675/gocron/internal/apiserver/models/impl/task"
+	taskLogImpl "github.com/x893675/gocron/internal/apiserver/models/impl/tasklog"
+	"github.com/x893675/gocron/pkg/client/database"
 	"k8s.io/klog/v2"
-	"net/http"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -35,16 +33,21 @@ type Task struct {
 
 	//models task log
 	taskLogModel models.TaskLogStore
+
+	httpHandler  *HTTPHandler
+	shellHandler *RPCHandler
 }
 
-func NewTaskService(taskModel models.TaskStore, taskLogModel models.TaskLogStore) *Task {
+func NewTaskService(dbClient *database.Client) *Task {
 	t := &Task{
 		serviceCron:      cron.New(),
 		runInstance:      &Instance{m: sync.Map{}},
 		taskCount:        &TaskCount{sync.WaitGroup{}, make(chan struct{})},
 		concurrencyQueue: &ConcurrencyQueue{queue: make(chan struct{}, defaultConcurrencyQueue)},
-		taskModel:        taskModel,
-		taskLogModel:     taskLogModel,
+		taskModel:        taskImpl.New(dbClient),
+		taskLogModel:     taskLogImpl.New(dbClient),
+		httpHandler:      &HTTPHandler{},
+		shellHandler:     &RPCHandler{},
 	}
 	return t
 }
@@ -66,12 +69,34 @@ func (t *Task) BatchAdd(tasks []models.Task) {
 
 // 删除任务后添加
 func (t *Task) RemoveAndAdd(tasks models.Task) {
-	t.Remove(tasks.Id)
-	t.Add(tasks)
+	//t.Remove(tasks.Id)
+	//t.Add(tasks)
 }
 
 func (t *Task) Remove(id int) {
 	t.serviceCron.RemoveJob(strconv.Itoa(id))
+}
+
+func (t *Task) NextRuntime() {
+
+}
+
+func (t *Task) Run() {
+
+}
+
+func (t *Task) Stop() {
+
+}
+
+func (t *Task) WaitAndExit() {
+
+}
+
+func (t *Task) ParseCronJobSpec(spec string) error {
+	return PanicToError(func() {
+		cron.Parse(spec)
+	})
 }
 
 // 添加任务
@@ -147,7 +172,7 @@ func createHandler(taskModel models.Task) Handler {
 	switch taskModel.Protocol {
 	case models.TaskHTTP:
 		handler = new(HTTPHandler)
-	case models.TaskRPC:
+	case models.TaskShell:
 		handler = new(RPCHandler)
 	}
 
@@ -158,76 +183,10 @@ type Handler interface {
 	Run(taskModel models.Task, taskUniqueId int64) (string, error)
 }
 
-// HTTP任务
-type HTTPHandler struct{}
-
-// http任务执行时间不超过300秒
-const HttpExecTimeout = 300
-
-func (h *HTTPHandler) Run(taskModel models.Task, taskUniqueId int64) (result string, err error) {
-	if taskModel.Timeout <= 0 || taskModel.Timeout > HttpExecTimeout {
-		taskModel.Timeout = HttpExecTimeout
-	}
-	var resp httpclient.ResponseWrapper
-	if taskModel.HttpMethod == models.TaskHTTPMethodGet {
-		resp = httpclient.Get(taskModel.Command, taskModel.Timeout)
-	} else {
-		urlFields := strings.Split(taskModel.Command, "?")
-		taskModel.Command = urlFields[0]
-		var params string
-		if len(urlFields) >= 2 {
-			params = urlFields[1]
-		}
-		resp = httpclient.PostParams(taskModel.Command, params, taskModel.Timeout)
-	}
-	// 返回状态码非200，均为失败
-	if resp.StatusCode != http.StatusOK {
-		return resp.Body, fmt.Errorf("HTTP状态码非200-->%d", resp.StatusCode)
-	}
-
-	return resp.Body, err
-}
-
 type TaskResult struct {
 	Result     string
 	Err        error
 	RetryTimes int8
-}
-
-// RPC调用执行任务
-type RPCHandler struct{}
-
-func (h *RPCHandler) Run(taskModel models.Task, taskUniqueId int64) (result string, err error) {
-	taskRequest := &pb.TaskRequest{}
-	taskRequest.Timeout = int32(taskModel.Timeout)
-	taskRequest.Command = taskModel.Command
-	taskRequest.Id = taskUniqueId
-	resultChan := make(chan TaskResult, len(taskModel.Hosts))
-	for _, taskHost := range taskModel.Hosts {
-		go func(th models.TaskHostDetail) {
-			output, err := rpc.Exec(th.Name, th.Port, taskRequest)
-			errorMessage := ""
-			if err != nil {
-				errorMessage = err.Error()
-			}
-			outputMessage := fmt.Sprintf("主机: [%s-%s:%d]\n%s\n%s\n\n",
-				th.Alias, th.Name, th.Port, errorMessage, output,
-			)
-			resultChan <- TaskResult{Err: err, Result: outputMessage}
-		}(taskHost)
-	}
-
-	var aggregationErr error = nil
-	aggregationResult := ""
-	for i := 0; i < len(taskModel.Hosts); i++ {
-		taskResult := <-resultChan
-		aggregationResult += taskResult.Result
-		if taskResult.Err != nil {
-			aggregationErr = taskResult.Err
-		}
-	}
-
-	return aggregationResult, aggregationErr
 }
 
 // PanicToError Panic转换为error

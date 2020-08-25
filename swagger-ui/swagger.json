@@ -72,9 +72,24 @@
         ],
         "responses": {
           "201": {
-            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource.",
+            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource."
+          },
+          "400": {
+            "description": "Bad Request. It is used to indicate that incorrect parameters were passed to the request.",
             "schema": {
-              "$ref": "#/definitions/models.Task"
+              "$ref": "#/definitions/restful.ServiceError"
+            }
+          },
+          "409": {
+            "description": "Already exists",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
             }
           }
         }
@@ -618,7 +633,6 @@
     },
     "models.Task": {
       "required": [
-        "id",
         "name",
         "level",
         "dependency_task_id",
@@ -636,28 +650,22 @@
         "notify_receiver_id",
         "notify_keyword",
         "tag",
+        "type",
         "remark",
         "status",
-        "created",
-        "deleted",
-        "hosts",
-        "next_run_time"
+        "next_run_time",
+        "hosts"
       ],
       "properties": {
         "command": {
           "type": "string"
         },
-        "created": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "deleted": {
+        "create_time": {
           "type": "string",
           "format": "date-time"
         },
         "dependency_status": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "dependency_task_id": {
           "type": "string"
@@ -669,20 +677,17 @@
           }
         },
         "http_method": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "id": {
           "type": "integer",
-          "format": "int32"
+          "format": "integer"
         },
         "level": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "multi": {
-          "type": "integer",
-          "format": "byte"
+          "type": "boolean"
         },
         "name": {
           "type": "string"
@@ -706,8 +711,7 @@
           "format": "byte"
         },
         "protocol": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "remark": {
           "type": "string"
@@ -724,8 +728,7 @@
           "type": "string"
         },
         "status": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "tag": {
           "type": "string"
@@ -733,12 +736,18 @@
         "timeout": {
           "type": "integer",
           "format": "int32"
+        },
+        "type": {
+          "type": "string"
+        },
+        "update_time": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
     "models.TaskHostDetail": {
       "required": [
-        "id",
         "task_id",
         "host_id",
         "name",
@@ -749,13 +758,17 @@
         "alias": {
           "type": "string"
         },
+        "create_time": {
+          "type": "string",
+          "format": "date-time"
+        },
         "host_id": {
           "type": "integer",
-          "format": "integer"
+          "format": "int32"
         },
         "id": {
           "type": "integer",
-          "format": "int32"
+          "format": "integer"
         },
         "name": {
           "type": "string"
@@ -767,12 +780,15 @@
         "task_id": {
           "type": "integer",
           "format": "int32"
+        },
+        "update_time": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
     "models.TaskLog": {
       "required": [
-        "id",
         "task_id",
         "name",
         "spec",
@@ -800,14 +816,13 @@
         },
         "id": {
           "type": "integer",
-          "format": "int64"
+          "format": "integer"
         },
         "name": {
           "type": "string"
         },
         "protocol": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "result": {
           "type": "string"
@@ -824,8 +839,7 @@
           "format": "date-time"
         },
         "status": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "task_id": {
           "type": "integer",
@@ -907,7 +921,7 @@
         "spec",
         "protocol",
         "command",
-        "hosts"
+        "type"
       ],
       "properties": {
         "command": {
@@ -916,11 +930,10 @@
         },
         "dependency_status": {
           "description": "task dependency status",
-          "type": "integer",
-          "format": "byte",
+          "type": "string",
           "enum": [
-            "1",
-            "2"
+            "strong",
+            "weak"
           ]
         },
         "dependency_task_id": {
@@ -933,26 +946,23 @@
         },
         "http_method": {
           "description": "get or post",
-          "type": "integer",
-          "format": "byte",
+          "type": "string",
           "enum": [
-            "1",
-            "2"
+            "get",
+            "post"
           ]
         },
         "level": {
           "description": "task level",
-          "type": "integer",
-          "format": "byte",
+          "type": "string",
           "enum": [
-            "1",
-            "2"
+            "parent",
+            "child"
           ]
         },
         "multi": {
           "description": "allow multi task run the same time, default is false",
-          "type": "integer",
-          "format": "byte"
+          "type": "boolean"
         },
         "name": {
           "description": "task name",
@@ -978,11 +988,10 @@
         },
         "protocol": {
           "description": "task protocol type,shell or http",
-          "type": "integer",
-          "format": "byte",
+          "type": "string",
           "enum": [
-            "1",
-            "2"
+            "http",
+            "shell"
           ]
         },
         "remark": {
@@ -1011,6 +1020,14 @@
           "description": "task timeout, second, 0 is not limit",
           "type": "integer",
           "format": "int32"
+        },
+        "type": {
+          "description": "task type, job or cronjob",
+          "type": "string",
+          "enum": [
+            "job",
+            "cronjob"
+          ]
         }
       }
     }

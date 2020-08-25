@@ -149,7 +149,6 @@ func (s *systemHandler) PingNode(request *restful.Request, response *restful.Res
 
 func parseIdOrName(param string, out *models.GetParam) {
 	id := stringutils.S(param).DefaultInt(0)
-	//var param models.GetParam
 	if id > 0 {
 		out.ID = id
 	} else {

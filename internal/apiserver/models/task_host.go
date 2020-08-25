@@ -1,14 +1,18 @@
 package models
 
 type TaskHost struct {
-	Id     int   `json:"id" xorm:"int pk autoincr"`
-	TaskId int   `json:"task_id" xorm:"int not null index"`
-	HostId int16 `json:"host_id" xorm:"smallint not null index"`
+	Model  `xorm:"extends"`
+	TaskId int `json:"task_id,omitempty" xorm:"not null index"`
+	HostId int `json:"host_id,omitempty" xorm:"not null index"`
 }
 
 type TaskHostDetail struct {
 	TaskHost `xorm:"extends"`
-	Name     string `json:"name"`
-	Port     int    `json:"port"`
-	Alias    string `json:"alias"`
+	Name     string `json:"name,omitempty"`
+	Port     int    `json:"port,omitempty"`
+	Alias    string `json:"alias,omitempty"`
+}
+
+func (TaskHostDetail) TableName() string {
+	return "g_" + "task_host"
 }

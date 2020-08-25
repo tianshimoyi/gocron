@@ -8,6 +8,7 @@ import (
 	taskImpl "github.com/x893675/gocron/internal/apiserver/models/impl/task"
 	taskLogImpl "github.com/x893675/gocron/internal/apiserver/models/impl/tasklog"
 	taskSchema "github.com/x893675/gocron/internal/apiserver/schema"
+	"github.com/x893675/gocron/internal/apiserver/service/task"
 	"github.com/x893675/gocron/pkg/client/database"
 	"github.com/x893675/gocron/pkg/server/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -18,16 +19,19 @@ const GroupName = "core"
 
 var GroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1"}
 
-func AddToContainer(c *restful.Container, dbClient *database.Client) error {
+func AddToContainer(c *restful.Container, dbClient *database.Client, taskService *task.Task) error {
 	ws := runtime.NewWebService(GroupVersion)
-	handler := newTaskHandler(taskImpl.New(dbClient), taskLogImpl.New(dbClient))
+	handler := newTaskHandler(taskImpl.New(dbClient), taskLogImpl.New(dbClient), taskService)
 
 	ws.Route(ws.POST("/tasks").
 		To(handler.CreateTask).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
 		Doc("Create task").
 		Reads(taskSchema.TaskRequest{}).
-		Returns(http.StatusCreated, constants.HTTP201, models.Task{}))
+		Returns(http.StatusCreated, constants.HTTP201, nil).
+		Returns(http.StatusBadRequest, constants.HTTP400, restful.ServiceError{}).
+		Returns(http.StatusConflict, constants.HTTP409, restful.ServiceError{}).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.GET("/tasks").
 		To(handler.ListTask).
@@ -42,36 +46,42 @@ func AddToContainer(c *restful.Container, dbClient *database.Client) error {
 		Param(ws.PathParameter("task", "task id")).
 		Doc("get task").
 		Writes(models.Task{}).
-		Returns(http.StatusOK, constants.HTTP200, models.Task{}))
+		Returns(http.StatusOK, constants.HTTP200, models.Task{}).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.HEAD("/tasks/{task}").
-		To(handler.GetTask).
+		To(handler.CheckTaskExist).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
-		Param(ws.PathParameter("task", "task id")).
+		Param(ws.PathParameter("task", "task id or name")).
 		Doc("check task exist").
 		Returns(http.StatusOK, constants.HTTP200, nil).
-		Returns(http.StatusNotFound, constants.HTTP404, nil))
+		Returns(http.StatusNotFound, constants.HTTP404, nil).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.DELETE("/tasks/{task}").
 		To(handler.DeleteTask).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
 		Param(ws.PathParameter("task", "task id")).
 		Doc("delete task").
-		Returns(http.StatusOK, constants.HTTP200, nil))
+		Returns(http.StatusOK, constants.HTTP200, nil).
+		Returns(http.StatusNotFound, constants.HTTP404, nil).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.PATCH("/tasks/{task}/enable").
 		To(handler.EnableTask).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
 		Param(ws.PathParameter("task", "task id")).
 		Doc("enable task").
-		Returns(http.StatusOK, constants.HTTP200, nil))
+		Returns(http.StatusOK, constants.HTTP200, nil).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.PATCH("/tasks/{task}/disable").
 		To(handler.DisableTask).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
 		Param(ws.PathParameter("task", "task id")).
 		Doc("disable task").
-		Returns(http.StatusOK, constants.HTTP200, nil))
+		Returns(http.StatusOK, constants.HTTP200, nil).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.POST("/tasks/{task}/run").
 		To(handler.RunTask).
