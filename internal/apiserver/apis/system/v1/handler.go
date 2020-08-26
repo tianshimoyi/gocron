@@ -5,10 +5,15 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/x893675/gocron/internal/apiserver/models"
 	"github.com/x893675/gocron/internal/apiserver/restplus"
+	"github.com/x893675/gocron/internal/apiserver/rpc"
 	"github.com/x893675/gocron/internal/apiserver/schema"
+	"github.com/x893675/gocron/pkg/pb"
 	"github.com/x893675/gocron/pkg/utils/stringutils"
 	"net/http"
 )
+
+const testConnectionCommand = "echo hello"
+const testConnectionTimeout = 5
 
 type systemHandler struct {
 	hostModel models.HostStore
@@ -144,7 +149,27 @@ func (s *systemHandler) UpdateNode(request *restful.Request, response *restful.R
 }
 
 func (s *systemHandler) PingNode(request *restful.Request, response *restful.Response) {
-
+	node := request.PathParameter("node")
+	var param models.GetParam
+	parseIdOrName(node, &param)
+	host, err := s.hostModel.Get(request.Request.Context(), param)
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	if host.Name == "" {
+		restplus.HandleBadRequest(response, request, fmt.Errorf("node not exsit"))
+		return
+	}
+	output, err := rpc.Exec(host.Addr, host.Port, &pb.TaskRequest{
+		Command: testConnectionCommand,
+		Timeout: testConnectionTimeout,
+	})
+	if err != nil {
+		restplus.HandleExpectedFailed(response, request, fmt.Errorf("connect faild: %v %v", err, output))
+		return
+	}
+	response.WriteHeader(http.StatusOK)
 }
 
 func parseIdOrName(param string, out *models.GetParam) {

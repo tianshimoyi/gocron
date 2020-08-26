@@ -12,6 +12,7 @@ type Host struct {
 	Alias  string `json:"alias,omitempty" xorm:"varchar(32) notnull default '' "`   // 主机别名
 	Port   int    `json:"port,omitempty" xorm:"notnull default 5921"`               // 主机端口
 	Remark string `json:"remark,omitempty" xorm:"varchar(100) notnull default '' "` // 备注
+	Addr   string `json:"addr,omitempty" xorm:"varchar(100) notnull default '' "`
 }
 
 type HostStore interface {
@@ -50,5 +51,6 @@ func (s SchemaHost) ToModelHost() *Host {
 		Alias:  s.Alias,
 		Port:   s.Port,
 		Remark: s.Remark,
+		Addr:   s.Address,
 	}
 }

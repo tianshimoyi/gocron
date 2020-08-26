@@ -20,6 +20,11 @@ func HandleBadRequest(response *restful.Response, req *restful.Request, err erro
 	_ = response.WriteServiceError(http.StatusBadRequest, restful.ServiceError{Code: http.StatusBadRequest, Message: sanitizer.Replace(err.Error())})
 }
 
+func HandleExpectedFailed(response *restful.Response, req *restful.Request, err error) {
+	klog.Error("handle expected failed: %v", err)
+	_ = response.WriteServiceError(http.StatusExpectationFailed, restful.ServiceError{Code: http.StatusExpectationFailed, Message: sanitizer.Replace(err.Error())})
+}
+
 func HandleNotFound(response *restful.Response, req *restful.Request, err error) {
 	klog.Error("service not found error: %v", err)
 	_ = response.WriteServiceError(http.StatusNotFound, restful.ServiceError{Code: http.StatusNotFound, Message: sanitizer.Replace(err.Error())})
