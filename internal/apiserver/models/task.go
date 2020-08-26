@@ -117,7 +117,7 @@ type ListTaskParam struct {
 	GetParam
 	Status   string
 	Level    string
-	HostID   string
+	HostID   int
 	Protocol string
 	Tag      string
 }

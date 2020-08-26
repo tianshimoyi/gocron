@@ -6,6 +6,7 @@ import (
 	"github.com/x893675/gocron/internal/apiserver/models"
 	"github.com/x893675/gocron/pkg/client/database"
 	"k8s.io/klog/v2"
+	"sync"
 )
 
 func New(client *database.Client) models.TaskStore {
@@ -49,7 +50,92 @@ func (t *taskStore) Delete(ctx context.Context, param models.DeleteParam) error 
 }
 
 func (t *taskStore) List(ctx context.Context, param models.ListTaskParam) ([]*models.Task, int64, error) {
-	return nil, 0, nil
+	var wg sync.WaitGroup
+	errChan := make(chan error, 1)
+	defer close(errChan)
+	var total int64
+	var err error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		total, err = t.total(param)
+		if err != nil {
+			errChan <- err
+			return
+		}
+	}()
+	list := make([]*models.Task, 0)
+	session := t.db.Alias("t").Join("LEFT", []string{"g_task_host", "th"}, "t.id = th.task_id")
+	t.parseListCondition(session, param)
+	session.GroupBy("t.id")
+	if param.Reverse {
+		session.Asc("t.id").Cols("t.*").Limit(param.Limit, param.Offset)
+	} else {
+		session.Desc("t.id").Cols("t.*").Limit(param.Limit, param.Offset)
+	}
+	err = session.Find(&list)
+	if err != nil {
+		return nil, 0, err
+	}
+	list, err = t.setHostsForTasks(ctx, list)
+	if err != nil {
+		return nil, 0, err
+	}
+	wg.Wait()
+	if len(errChan) != 0 {
+		return nil, 0, <-errChan
+	}
+	return list, total, nil
+}
+
+func (t *taskStore) total(param models.ListTaskParam) (int64, error) {
+	list := make([]*models.Task, 0)
+	session := t.db.Alias("t").Join("LEFT", []string{"g_task_host", "th"}, "t.id = th.task_id")
+	t.parseListCondition(session, param)
+	session.GroupBy("t.id")
+	if param.Reverse {
+		session.Asc("t.id").Cols("t.*").Limit(param.Limit, param.Offset)
+	} else {
+		session.Desc("t.id").Cols("t.*").Limit(param.Limit, param.Offset)
+	}
+	err := session.Find(&list)
+	return int64(len(list)), err
+}
+
+func (t *taskStore) parseListCondition(session *xorm.Session, param models.ListTaskParam) {
+	if param.ID > 0 {
+		session.And("t.id = ?", param.ID)
+	}
+	if param.HostID > 0 {
+		session.And("th.host_id = ?", param.HostID)
+	}
+	if param.Name != "" {
+		session.And("t.name LIKE ?", "%"+param.Name+"%")
+	}
+	if param.Protocol != "" {
+		session.And("protocol = ?", param.Protocol)
+	}
+	if param.Status != "" {
+		session.And("status = ?", param.Status)
+	}
+	if param.Tag != "" {
+		session.And("tag = ?", param.Tag)
+	}
+	if param.Level != "" {
+		session.And("level = ?", param.Level)
+	}
+}
+
+func (t *taskStore) setHostsForTasks(ctx context.Context, tasks []*models.Task) ([]*models.Task, error) {
+	var err error
+	for i, value := range tasks {
+		taskHostDetails, err := t.GetTaskHostByTaskID(ctx, value.Id)
+		if err != nil {
+			return nil, err
+		}
+		tasks[i].Hosts = taskHostDetails
+	}
+	return tasks, err
 }
 
 func (t *taskStore) Get(ctx context.Context, param models.GetParam) (*models.Task, error) {

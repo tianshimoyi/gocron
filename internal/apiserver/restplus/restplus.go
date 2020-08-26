@@ -102,6 +102,14 @@ func GetStringValueWithDefault(req *restful.Request, name string, dv string) str
 	return v
 }
 
+func GetIntValueWithDefault(req *restful.Request, name string, dv int) int {
+	v := req.QueryParameter(name)
+	if v, err := strconv.ParseInt(v, 10, 64); err == nil {
+		return int(v)
+	}
+	return dv
+}
+
 type PageableResponse struct {
 	Items      interface{} `json:"items" description:"paging data"`
 	TotalCount int         `json:"total_count" description:"total count"`

@@ -7,6 +7,7 @@ import (
 	"github.com/x893675/gocron/internal/apiserver/models"
 	taskImpl "github.com/x893675/gocron/internal/apiserver/models/impl/task"
 	taskLogImpl "github.com/x893675/gocron/internal/apiserver/models/impl/tasklog"
+	"github.com/x893675/gocron/internal/apiserver/restplus"
 	taskSchema "github.com/x893675/gocron/internal/apiserver/schema"
 	"github.com/x893675/gocron/internal/apiserver/service/task"
 	"github.com/x893675/gocron/pkg/client/database"
@@ -37,8 +38,41 @@ func AddToContainer(c *restful.Container, dbClient *database.Client, taskService
 		To(handler.ListTask).
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
 		Doc("List task").
+		Param(ws.QueryParameter(restplus.PagingParam, "paging query, e.g. limit=100,page=1").
+			Required(false).
+			DataFormat("limit=%d,page=%d").
+			DefaultValue("limit=10,page=1")).
+		Param(ws.QueryParameter(restplus.ReverseParam, "revers result").
+			Required(false).
+			DataType("bool").
+			DefaultValue("false")).
+		Param(ws.QueryParameter("id", "task id").
+			Required(false).
+			DataType("int").
+			DefaultValue("0")).
+		Param(ws.QueryParameter("hostid", "host id").
+			Required(false).
+			DataType("int").
+			DefaultValue("0")).
+		Param(ws.QueryParameter("tag", "task tag").
+			Required(false).
+			DataType("string").
+			DefaultValue("")).
+		Param(ws.QueryParameter("name", "task name").
+			Required(false).
+			DataType("string").
+			DefaultValue("")).
+		Param(ws.QueryParameter("protocol", "task protocol").
+			Required(false).
+			DataType("string").
+			DefaultValue("")).
+		Param(ws.QueryParameter("status", "task status").
+			Required(false).
+			DataType("string").
+			DefaultValue("")).
 		Writes([]models.Task{}).
-		Returns(http.StatusOK, constants.HTTP200, []models.Task{}))
+		Returns(http.StatusOK, constants.HTTP200, restplus.PageableResponse{}).
+		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
 
 	ws.Route(ws.GET("/tasks/{task}").
 		To(handler.GetTask).

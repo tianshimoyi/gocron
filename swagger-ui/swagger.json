@@ -39,14 +39,72 @@
         ],
         "summary": "List task",
         "operationId": "ListTask",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "limit=%d,page=%d",
+            "default": "limit=10,page=1",
+            "description": "paging query, e.g. limit=100,page=1",
+            "name": "paging",
+            "in": "query"
+          },
+          {
+            "type": "bool",
+            "default": false,
+            "description": "revers result",
+            "name": "reverse",
+            "in": "query"
+          },
+          {
+            "type": "int",
+            "default": 0,
+            "description": "task id",
+            "name": "id",
+            "in": "query"
+          },
+          {
+            "type": "int",
+            "default": 0,
+            "description": "host id",
+            "name": "hostid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "task tag",
+            "name": "tag",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "task name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "task protocol",
+            "name": "protocol",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "task status",
+            "name": "status",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/models.Task"
-              }
+              "$ref": "#/definitions/restplus.PageableResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
             }
           }
         }
@@ -120,6 +178,12 @@
             "schema": {
               "$ref": "#/definitions/models.Task"
             }
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
           }
         }
       },
@@ -144,6 +208,15 @@
         "responses": {
           "200": {
             "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+          },
+          "404": {
+            "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
           }
         }
       },
@@ -155,11 +228,11 @@
           "Task"
         ],
         "summary": "check task exist",
-        "operationId": "GetTask",
+        "operationId": "CheckTaskExist",
         "parameters": [
           {
             "type": "string",
-            "description": "task id",
+            "description": "task id or name",
             "name": "task",
             "in": "path",
             "required": true
@@ -171,6 +244,12 @@
           },
           "404": {
             "description": "Not Found. It is used when a client provided a URI that cannot be mapped to a valid resource URI."
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
           }
         }
       }
@@ -197,6 +276,12 @@
         "responses": {
           "200": {
             "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
           }
         }
       }
@@ -223,6 +308,12 @@
         "responses": {
           "200": {
             "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+          },
+          "500": {
+            "description": "Internal Error",
+            "schema": {
+              "$ref": "#/definitions/restful.ServiceError"
+            }
           }
         }
       }
@@ -632,30 +723,6 @@
       }
     },
     "models.Task": {
-      "required": [
-        "name",
-        "level",
-        "dependency_task_id",
-        "dependency_status",
-        "spec",
-        "protocol",
-        "command",
-        "http_method",
-        "timeout",
-        "multi",
-        "retry_times",
-        "retry_interval",
-        "notify_status",
-        "notify_type",
-        "notify_receiver_id",
-        "notify_keyword",
-        "tag",
-        "type",
-        "remark",
-        "status",
-        "next_run_time",
-        "hosts"
-      ],
       "properties": {
         "command": {
           "type": "string"
@@ -747,13 +814,6 @@
       }
     },
     "models.TaskHostDetail": {
-      "required": [
-        "task_id",
-        "host_id",
-        "name",
-        "port",
-        "alias"
-      ],
       "properties": {
         "alias": {
           "type": "string"

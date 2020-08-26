@@ -71,7 +71,29 @@ func (t *taskHandler) GetTask(request *restful.Request, response *restful.Respon
 }
 
 func (t *taskHandler) ListTask(request *restful.Request, response *restful.Response) {
+	limit, offset := restplus.ParsePaging(request)
 
+	param := models.ListTaskParam{
+		BaseListParam: models.BaseListParam{
+			Reverse: restplus.GetBoolValueWithDefault(request, restplus.ReverseParam, false),
+			Offset:  offset,
+			Limit:   limit,
+		},
+		GetParam: models.GetParam{
+			ID: restplus.GetIntValueWithDefault(request, "id", 0),
+		},
+		Status:   restplus.GetStringValueWithDefault(request, "status", ""),
+		Level:    restplus.GetStringValueWithDefault(request, "level", ""),
+		HostID:   restplus.GetIntValueWithDefault(request, "hostid", 0),
+		Protocol: restplus.GetStringValueWithDefault(request, "protocol", ""),
+		Tag:      restplus.GetStringValueWithDefault(request, "tag", ""),
+	}
+	result, total, err := t.taskModel.List(request.Request.Context(), param)
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	restplus.ResWithPage(response, result, int(total), http.StatusOK)
 }
 
 func (t *taskHandler) DeleteTask(request *restful.Request, response *restful.Response) {
