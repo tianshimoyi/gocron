@@ -335,6 +335,33 @@
             "name": "task",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "format": "limit=%d,page=%d",
+            "default": "limit=10,page=1",
+            "description": "paging query, e.g. limit=100,page=1",
+            "name": "paging",
+            "in": "query"
+          },
+          {
+            "type": "bool",
+            "default": false,
+            "description": "revers result",
+            "name": "reverse",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "task protocol",
+            "name": "protocol",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "task status",
+            "name": "status",
+            "in": "query"
           }
         ],
         "responses": {
@@ -695,6 +722,9 @@
   "definitions": {
     "models.Host": {
       "properties": {
+        "addr": {
+          "type": "string"
+        },
         "alias": {
           "type": "string"
         },
@@ -815,6 +845,9 @@
     },
     "models.TaskHostDetail": {
       "properties": {
+        "addr": {
+          "type": "string"
+        },
         "alias": {
           "type": "string"
         },
@@ -951,9 +984,14 @@
     "schema.NodeRequest": {
       "required": [
         "name",
-        "port"
+        "port",
+        "addr"
       ],
       "properties": {
+        "addr": {
+          "description": "node ip address",
+          "type": "string"
+        },
         "alias": {
           "description": "alias name",
           "type": "string"
