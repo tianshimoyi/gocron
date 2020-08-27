@@ -57,6 +57,7 @@ func Exec(ip string, port int, taskReq *pb.TaskRequest) (string, error) {
 
 	resp, err := c.Run(ctx, taskReq)
 	if err != nil {
+		klog.Errorf("rpc error %v", err)
 		return parseGRPCError(err)
 	}
 

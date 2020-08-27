@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/x893675/gocron/pkg/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/keepalive"
 	"sync"
 	"time"
@@ -77,7 +76,8 @@ func (p *GRPCPool) factory(addr string) (*Client, error) {
 	}
 	opts := []grpc.DialOption{
 		grpc.WithKeepaliveParams(keepAliveParams),
-		grpc.WithConnectParams(grpc.ConnectParams{Backoff: backoff.Config{MaxDelay: backOffMaxDelay}}),
+		//grpc.WithConnectParams(grpc.ConnectParams{Backoff: backoff.Config{MaxDelay: backOffMaxDelay}}),
+		grpc.WithInsecure(),
 	}
 
 	//if !app.Setting.EnableTLS {
