@@ -1,5 +1,7 @@
 apps = 'gocron-agent' 'gocron-server'
 
+ORG ?= caas4
+
 .PHONY: build
 build: fmt checkfmt
 	for app in $(apps) ;\
@@ -32,3 +34,15 @@ swagger-server:
 .PHONY: proto
 proto:
 	cd proto && make generate
+
+.PHONY: build-image
+proto:
+	cd proto && make generate
+
+.PHONY: build-gocron-server
+build-gocron-server:
+	docker build -f build/gocron-server/Dockerfile -t $(ORG)/gocron-server:latest .
+
+.PHONY: build-gocron-agent
+build-gocron-agent:
+	docker build -f build/gocron-agent/Dockerfile -t $(ORG)/gocron-agent:latest .
