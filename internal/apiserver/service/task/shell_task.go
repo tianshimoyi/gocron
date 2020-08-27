@@ -10,7 +10,7 @@ import (
 // RPC调用执行任务
 type RPCHandler struct{}
 
-func (h *RPCHandler) Run(taskModel models.Task, taskUniqueId int64) (result string, err error) {
+func (h *RPCHandler) Run(taskModel *models.Task, taskUniqueId int64) (result string, err error) {
 	taskRequest := &pb.TaskRequest{}
 	taskRequest.Timeout = int32(taskModel.Timeout)
 	taskRequest.Command = taskModel.Command
@@ -18,7 +18,7 @@ func (h *RPCHandler) Run(taskModel models.Task, taskUniqueId int64) (result stri
 	resultChan := make(chan TaskResult, len(taskModel.Hosts))
 	for _, taskHost := range taskModel.Hosts {
 		go func(th models.TaskHostDetail) {
-			output, err := rpc.Exec(th.Name, th.Port, taskRequest)
+			output, err := rpc.Exec(th.Addr, th.Port, taskRequest)
 			errorMessage := ""
 			if err != nil {
 				errorMessage = err.Error()

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/x893675/gocron/internal/apiserver/models"
@@ -8,6 +9,7 @@ import (
 	"github.com/x893675/gocron/internal/apiserver/schema"
 	"github.com/x893675/gocron/internal/apiserver/service/task"
 	"github.com/x893675/gocron/pkg/utils/stringutils"
+	"k8s.io/klog/v2"
 	"net/http"
 )
 
@@ -49,12 +51,15 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 			return
 		}
 	}
-	err = t.taskModel.Create(request.Request.Context(), models.SchemaTask(item))
+	taskID, err := t.taskModel.Create(request.Request.Context(), models.SchemaTask(item))
 	if err != nil {
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
-	//TODO: add task to run
+	if item.Type == models.TaskTypeCronJob {
+		t.addTaskToTimer(int(taskID))
+	}
+	//todo add run once job
 	response.WriteHeader(http.StatusCreated)
 }
 
@@ -148,11 +153,46 @@ func (t *taskHandler) RunTask(request *restful.Request, response *restful.Respon
 }
 
 func (t *taskHandler) GetTaskLog(request *restful.Request, response *restful.Response) {
-
+	tsk := request.PathParameter("task")
+	id := stringutils.S(tsk).DefaultInt(0)
+	if id == 0 {
+		restplus.HandleBadRequest(response, request, fmt.Errorf("only support get task log by id"))
+		return
+	}
+	limit, offset := restplus.ParsePaging(request)
+	result, total, err := t.taskLogModel.List(request.Request.Context(), models.ListTaskLogParam{
+		BaseListParam: models.BaseListParam{
+			Limit:   limit,
+			Offset:  offset,
+			Reverse: restplus.GetBoolValueWithDefault(request, restplus.ReverseParam, false),
+		},
+		Status:   restplus.GetStringValueWithDefault(request, "status", ""),
+		Protocol: restplus.GetStringValueWithDefault(request, "protocol", ""),
+		TaskID:   id,
+	})
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	restplus.ResWithPage(response, result, int(total), http.StatusOK)
 }
 
 func (t *taskHandler) ClearTaskLog(request *restful.Request, response *restful.Response) {
-
+	tsk := request.PathParameter("task")
+	id := stringutils.S(tsk).DefaultInt(0)
+	if id == 0 {
+		restplus.HandleBadRequest(response, request, fmt.Errorf("only support delete task log by id"))
+		return
+	}
+	if err := t.taskLogModel.Delete(request.Request.Context(), models.DeleteTaskLogParam{
+		TaskID: id,
+		Status: restplus.GetStringValueWithDefault(request, "status", ""),
+		Mon:    restplus.GetIntValueWithDefault(request, "mon", 0),
+	}); err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	response.WriteHeader(http.StatusOK)
 }
 
 func (t *taskHandler) StopTask(request *restful.Request, response *restful.Response) {
@@ -182,4 +222,15 @@ func parseIdOrName(param string, out *models.GetParam) {
 	} else {
 		out.Name = param
 	}
+}
+
+func (t *taskHandler) addTaskToTimer(id int) {
+	job, err := t.taskModel.Get(context.TODO(), models.GetParam{
+		ID: id,
+	})
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	t.taskService.RemoveAndAdd(job)
 }

@@ -41,7 +41,11 @@ func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
 		klog.V(2).Infof("%s", ws.RootPath())
 	}
 	s.Server.Handler = s.container
-	return s.Migration()
+	err := s.Migration()
+	if err != nil {
+		return err
+	}
+	return s.TaskService.Initialize(stopCh)
 }
 
 func (s *APIServer) Run(stopCh <-chan struct{}) error {

@@ -11,6 +11,7 @@ type TaskHostDetail struct {
 	Name     string `json:"name,omitempty"`
 	Port     int    `json:"port,omitempty"`
 	Alias    string `json:"alias,omitempty"`
+	Addr     string `json:"addr,omitempty"`
 }
 
 func (TaskHostDetail) TableName() string {

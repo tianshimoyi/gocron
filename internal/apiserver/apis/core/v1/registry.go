@@ -136,6 +136,22 @@ func AddToContainer(c *restful.Container, dbClient *database.Client, taskService
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
 		Param(ws.PathParameter("task", "task id")).
 		Doc("get task log").
+		Param(ws.QueryParameter(restplus.PagingParam, "paging query, e.g. limit=100,page=1").
+			Required(false).
+			DataFormat("limit=%d,page=%d").
+			DefaultValue("limit=10,page=1")).
+		Param(ws.QueryParameter(restplus.ReverseParam, "revers result").
+			Required(false).
+			DataType("bool").
+			DefaultValue("false")).
+		Param(ws.QueryParameter("protocol", "task protocol").
+			Required(false).
+			DataType("string").
+			DefaultValue("")).
+		Param(ws.QueryParameter("status", "task status").
+			Required(false).
+			DataType("string").
+			DefaultValue("")).
 		Returns(http.StatusOK, constants.HTTP200, []models.TaskLog{}))
 
 	ws.Route(ws.DELETE("/tasks/{task}/logs").

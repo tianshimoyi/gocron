@@ -17,29 +17,35 @@ type taskStore struct {
 	db *xorm.Engine
 }
 
-func (t *taskStore) Create(ctx context.Context, tsk models.SchemaTask) error {
+func (t *taskStore) Create(ctx context.Context, tsk models.SchemaTask) (uint, error) {
 	session := t.db.NewSession()
 	defer session.Close()
 	if err := session.Begin(); err != nil {
-		return err
+		return 0, err
 	}
 	item := tsk.ToModelTask()
 	if _, err := session.Insert(item); err != nil {
-		return err
+		return 0, err
 	}
 	klog.V(2).Infof("create task id is %d", item.Id)
 	if item.Protocol == models.TaskShell {
 		itemHost := tsk.ToModelTaskHosts(int(item.Id))
 		if _, err := session.Insert(&itemHost); err != nil {
-			return err
+			return 0, err
 		}
 	}
-	return session.Commit()
+	if err := session.Commit(); err != nil {
+		return 0, err
+	}
+	return item.Id, session.Commit()
 }
 
 func (t *taskStore) Delete(ctx context.Context, param models.DeleteParam) error {
 	session := t.db.NewSession()
 	defer session.Close()
+	if err := session.Begin(); err != nil {
+		return err
+	}
 	if _, err := session.ID(param.ID).Delete(new(models.Task)); err != nil {
 		return err
 	}
@@ -124,6 +130,9 @@ func (t *taskStore) parseListCondition(session *xorm.Session, param models.ListT
 	if param.Level != "" {
 		session.And("level = ?", param.Level)
 	}
+	if param.Type != "" {
+		session.And("type = ?", param.Type)
+	}
 }
 
 func (t *taskStore) setHostsForTasks(ctx context.Context, tasks []*models.Task) ([]*models.Task, error) {
@@ -175,7 +184,7 @@ func (t *taskStore) UpdateTaskStatus(ctx context.Context, id int, status string)
 
 func (t *taskStore) GetTaskHostByTaskID(ctx context.Context, taskID uint) ([]models.TaskHostDetail, error) {
 	list := make([]models.TaskHostDetail, 0)
-	fields := "th.id,th.host_id,h.alias,h.name,h.port"
+	fields := "th.id,th.host_id,h.alias,h.name,h.port,h.addr"
 	err := t.db.Alias("th").
 		Join("LEFT", []string{"g_host", "h"}, "th.host_id=h.id").
 		Where("th.task_id = ?", taskID).
