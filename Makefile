@@ -36,8 +36,7 @@ proto:
 	cd proto && make generate
 
 .PHONY: build-image
-proto:
-	cd proto && make generate
+build-image: build-gocron-server build-gocron-agent
 
 .PHONY: build-gocron-server
 build-gocron-server:
