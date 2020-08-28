@@ -1,5 +1,8 @@
 apps = 'gocron-agent' 'gocron-server'
 
+REPO_URL ?= $(shell git ls-remote --get-url origin)
+BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+COMMIT_REF ?= $(shell git rev-parse --verify HEAD)
 ORG ?= caas4
 
 .PHONY: build
@@ -40,8 +43,8 @@ build-image: build-gocron-server build-gocron-agent
 
 .PHONY: build-gocron-server
 build-gocron-server:
-	docker build -f build/gocron-server/Dockerfile -t $(ORG)/gocron-server:latest .
+	docker build --build-arg REPO_URL=$(REPO_URL) --build-arg BRANCH=$(BRANCH) --build-arg COMMIT_REF=$(COMMIT_REF) -f build/gocron-server/Dockerfile -t $(ORG)/gocron-server:latest .
 
 .PHONY: build-gocron-agent
 build-gocron-agent:
-	docker build -f build/gocron-agent/Dockerfile -t $(ORG)/gocron-agent:latest .
+	docker build --build-arg REPO_URL=$(REPO_URL) --build-arg BRANCH=$(BRANCH) --build-arg COMMIT_REF=$(COMMIT_REF) -f build/gocron-agent/Dockerfile -t $(ORG)/gocron-agent:latest .

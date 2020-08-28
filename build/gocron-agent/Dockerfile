@@ -5,6 +5,14 @@ COPY . /app
 RUN CGO_ENABLED=0 go build -o  dist/gocron-agent -a -ldflags "-w -s" ./cmd/gocron-agent
 
 FROM alpine:3.10
+
+ARG REPO_URL
+ARG BRANCH
+ARG COMMIT_REF
+LABEL repo-url=${REPO_URL}
+LABEL branch=${BRANCH}
+LABEL commit-ref=${COMMIT_REF}
+
 RUN apk update \
   && apk upgrade \
   && apk add --no-cache \
