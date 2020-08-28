@@ -56,10 +56,15 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
-	if item.Type == models.TaskTypeCronJob {
+	//TODO: add run at job
+	switch item.Type {
+	case models.TaskTypeCronJob:
 		t.addTaskToTimer(int(taskID))
+	case models.TaskTypeJob:
+		fallthrough
+	default:
+		t.runJob(int(taskID))
 	}
-	//todo add run once job
 	response.WriteHeader(http.StatusCreated)
 }
 
@@ -98,6 +103,9 @@ func (t *taskHandler) ListTask(request *restful.Request, response *restful.Respo
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
+	for _, job := range result {
+		t.taskService.NextRuntime(job)
+	}
 	restplus.ResWithPage(response, result, int(total), http.StatusOK)
 }
 
@@ -114,7 +122,7 @@ func (t *taskHandler) DeleteTask(request *restful.Request, response *restful.Res
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
-	//todo remove cron job
+	t.taskService.Remove(param.ID)
 	response.WriteHeader(http.StatusOK)
 }
 
@@ -130,6 +138,7 @@ func (t *taskHandler) EnableTask(request *restful.Request, response *restful.Res
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
+	t.addTaskToTimer(id)
 	response.WriteHeader(http.StatusOK)
 }
 
@@ -145,6 +154,7 @@ func (t *taskHandler) DisableTask(request *restful.Request, response *restful.Re
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
+	t.taskService.Remove(id)
 	response.WriteHeader(http.StatusOK)
 }
 
@@ -233,4 +243,15 @@ func (t *taskHandler) addTaskToTimer(id int) {
 		return
 	}
 	t.taskService.RemoveAndAdd(job)
+}
+
+func (t *taskHandler) runJob(id int) {
+	job, err := t.taskModel.Get(context.TODO(), models.GetParam{
+		ID: id,
+	})
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	t.taskService.Run(job)
 }

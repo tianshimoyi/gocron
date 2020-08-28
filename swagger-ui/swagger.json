@@ -1016,7 +1016,6 @@
         "level",
         "dependency_status",
         "name",
-        "spec",
         "protocol",
         "command",
         "type"

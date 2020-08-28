@@ -7,6 +7,7 @@ import (
 	"github.com/x893675/gocron/internal/apiserver/models"
 	taskImpl "github.com/x893675/gocron/internal/apiserver/models/impl/task"
 	taskLogImpl "github.com/x893675/gocron/internal/apiserver/models/impl/tasklog"
+	"github.com/x893675/gocron/internal/apiserver/rpc"
 	"github.com/x893675/gocron/pkg/client/database"
 	"k8s.io/klog/v2"
 	"runtime"
@@ -58,7 +59,7 @@ func (t *Task) Initialize(stopCh <-chan struct{}) error {
 	t.serviceCron.Start()
 	go func() {
 		<-stopCh
-		t.serviceCron.Stop()
+		t.WaitAndExit()
 	}()
 	go t.taskCount.Wait()
 	klog.V(1).Infof("begin init corn job")
@@ -107,20 +108,31 @@ func (t *Task) Remove(id int) {
 	t.serviceCron.RemoveJob(fmt.Sprintf("task-%d", id))
 }
 
-func (t *Task) NextRuntime() {
-
+func (t *Task) NextRuntime(job *models.Task) {
+	if job.Status != models.TaskStatusEnabled || job.Level != models.ParentLevelTask {
+		return
+	}
+	e := t.serviceCron.Entries()
+	for _, item := range e {
+		if item.Name == fmt.Sprintf("task-%d", job.Id) {
+			ts := item.Next
+			job.NextRunTime = &ts
+			break
+		}
+	}
 }
 
-func (t *Task) Run() {
-
+func (t *Task) Run(job *models.Task) {
+	go t.createJob(job)()
 }
 
-func (t *Task) Stop() {
-
+func (t *Task) Stop(ip string, port int, id int64) {
+	rpc.Stop(ip, port, id)
 }
 
 func (t *Task) WaitAndExit() {
-
+	t.serviceCron.Stop()
+	t.taskCount.Exit()
 }
 
 func (t *Task) ParseCronJobSpec(spec string) error {

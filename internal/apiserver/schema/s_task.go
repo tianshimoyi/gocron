@@ -5,7 +5,7 @@ type TaskRequest struct {
 	DependencyStatus string `json:"dependency_status" description:"task dependency status" enum:"strong|weak" validate:"required,oneof=strong weak"` // 依赖关系 1:强依赖 主任务执行成功, 依赖任务才会被执行 2:弱依赖
 	DependencyTaskId string `json:"dependency_task_id" description:"dependency task id" optional:"true"`                                             // 依赖任务ID,多个ID逗号分隔
 	Name             string `json:"name" description:"task name" validate:"required"`                                                                // 任务名称
-	Spec             string `json:"spec" description:"crontab expression" validate:"required"`                                                       // crontab
+	Spec             string `json:"spec" description:"crontab expression" optional:"true"`                                                           // crontab
 	Protocol         string `json:"protocol" description:"task protocol type,shell or http" enum:"http|shell" validate:"required,oneof=http shell"`  // 协议 1:http 2:系统命令
 	Command          string `json:"command" description:"shell command or http url" validate:"required"`
 	HttpMethod       string `json:"http_method" description:"get or post" enum:"get|post" optional:"true"`                    // http请求方法
