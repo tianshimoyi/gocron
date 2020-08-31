@@ -78,7 +78,7 @@ func (t *taskLogStore) Delete(ctx context.Context, param models.DeleteTaskLogPar
 		session.And("status = ?", param.Status)
 	}
 	if param.Mon != 0 {
-		t := time.Now().AddDate(0, -param.Mon, 0)
+		t := time.Now().UTC().AddDate(0, -param.Mon, 0)
 		session.And("start_time <= ?", t.Format(models.DefaultTimeFormat))
 	}
 	_, err := session.Delete(new(models.TaskLog))
