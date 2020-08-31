@@ -821,6 +821,10 @@
           "type": "integer",
           "format": "byte"
         },
+        "run_at": {
+          "type": "string",
+          "format": "date-time"
+        },
         "spec": {
           "type": "string"
         },
@@ -1105,6 +1109,10 @@
           "type": "integer",
           "format": "byte"
         },
+        "run_at": {
+          "description": "when type is planjob, run at must be validate",
+          "type": "string"
+        },
         "spec": {
           "description": "crontab expression",
           "type": "string"
@@ -1119,11 +1127,12 @@
           "format": "int32"
         },
         "type": {
-          "description": "task type, job or cronjob",
+          "description": "task type, job,cronjob or planjob",
           "type": "string",
           "enum": [
             "job",
-            "cronjob"
+            "cronjob",
+            "planjob"
           ]
         }
       }
