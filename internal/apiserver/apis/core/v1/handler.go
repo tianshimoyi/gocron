@@ -47,9 +47,16 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 	}
 	if item.Type == models.TaskTypeCronJob {
 		if err := t.taskService.ParseCronJobSpec(item.Spec); err != nil {
-			restplus.HandleBadRequest(response, request, err)
+			klog.Errorf("parse cron job spec error %v", err)
+			restplus.HandleBadRequest(response, request, fmt.Errorf("cron job spec must be valid"))
 			return
 		}
+	} else if item.Type == models.TaskTypePlanJob {
+		if item.RunAt == nil {
+			restplus.HandleBadRequest(response, request, fmt.Errorf("run_at must be valid when type is planjob"))
+			return
+		}
+		klog.Infof("run at is %v", item.RunAt.Format("2006-01-02 15:04:05"))
 	}
 	taskID, err := t.taskModel.Create(request.Request.Context(), models.SchemaTask(item))
 	if err != nil {
@@ -61,9 +68,11 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 	case models.TaskTypeCronJob:
 		t.addTaskToTimer(int(taskID))
 	case models.TaskTypeJob:
+		t.runJob(int(taskID))
+	case models.TaskTypePlanJob:
 		fallthrough
 	default:
-		t.runJob(int(taskID))
+		klog.V(2).Infof("only create task record, do nothing for planjob")
 	}
 	response.WriteHeader(http.StatusCreated)
 }
@@ -77,6 +86,7 @@ func (t *taskHandler) GetTask(request *restful.Request, response *restful.Respon
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
+	t.taskService.NextRuntime(result)
 	_ = response.WriteHeaderAndEntity(http.StatusOK, result)
 }
 
@@ -104,6 +114,8 @@ func (t *taskHandler) ListTask(request *restful.Request, response *restful.Respo
 		return
 	}
 	for _, job := range result {
+		zone, offset := job.CreatedAt.Zone()
+		klog.V(2).Infof("job create time is %v, %v", zone, offset)
 		t.taskService.NextRuntime(job)
 	}
 	restplus.ResWithPage(response, result, int(total), http.StatusOK)

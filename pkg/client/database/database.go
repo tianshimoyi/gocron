@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"k8s.io/klog/v2"
+	"time"
 	"xorm.io/core"
 )
 
@@ -30,14 +31,14 @@ func NewDatabaseClient(options *Options, stopCh <-chan struct{}) (*Client, error
 		engine.ShowSQL(true)
 		engine.Logger().SetLevel(core.LOG_DEBUG)
 	}
-
 	go func() {
 		<-stopCh
 		if err := engine.Close(); err != nil {
 			klog.Warning("error happened during closing database connection", err)
 		}
 	}()
-
+	engine.SetTZDatabase(time.UTC)
+	//engine.SetTZLocation(time.UTC)
 	return &Client{db: engine}, nil
 }
 

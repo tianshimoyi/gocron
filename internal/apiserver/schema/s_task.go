@@ -20,5 +20,6 @@ type TaskRequest struct {
 	NotifyType       int8   `json:"notify_type"description:"notify type" optional:"true"`              // 通知类型 1: 邮件 2: slack 3: webhook
 	NotifyReceiverId string `json:"notify_receiver_id" description:"notify receivers" optional:"true"` // 通知接受者ID, setting表主键ID，多个ID逗号分隔
 	NotifyKeyword    string `json:"notify_keyword" description:"notify keyword" optional:"true"`
-	Type             string `json:"type" description:"task type, job or cronjob"  enum:"job|cronjob" validate:"required,oneof=job cronjob"`
+	Type             string `json:"type" description:"task type, job,cronjob or planjob"  enum:"job|cronjob|planjob" validate:"required,oneof=job cronjob planjob"`
+	RunAt            *Time  `json:"run_at,omitempty" description:"when type is planjob, run at must be validate" optional:"true"`
 }

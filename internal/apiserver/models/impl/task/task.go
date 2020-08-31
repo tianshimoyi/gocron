@@ -7,6 +7,7 @@ import (
 	"github.com/x893675/gocron/pkg/client/database"
 	"k8s.io/klog/v2"
 	"sync"
+	"time"
 )
 
 func New(client *database.Client) models.TaskStore {
@@ -132,6 +133,12 @@ func (t *taskStore) parseListCondition(session *xorm.Session, param models.ListT
 	}
 	if param.Type != "" {
 		session.And("type = ?", param.Type)
+	}
+	if param.RunAtInterval != 0 {
+		t := time.Now().UTC()
+		//tAfter := t.Add(param.RunAtInterval
+		session.And("run_at >= ?", t.Format(models.DefaultTimeFormat))
+		session.And("run_at <= ?", t.Add(param.RunAtInterval).Format(models.DefaultTimeFormat))
 	}
 }
 

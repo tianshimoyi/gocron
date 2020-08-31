@@ -15,7 +15,10 @@ import (
 	"time"
 )
 
-const defaultConcurrencyQueue = 500
+const (
+	defaultConcurrencyQueue = 500
+	planJobInterval         = 30 * time.Second
+)
 
 type Task struct {
 	// 定时任务调度管理器
@@ -88,6 +91,48 @@ func (t *Task) Initialize(stopCh <-chan struct{}) error {
 		page++
 	}
 	klog.V(1).Infof("%d corn job init finish", taskNum)
+	go t.planJobTrigger()
+	return nil
+}
+
+func (t *Task) planJobTrigger() {
+	tick := time.Tick(planJobInterval)
+	var err error
+	for {
+		<-tick
+		if err = t.runPlanJob(); err != nil {
+			klog.Errorf("run plan job error %v", err)
+		}
+	}
+}
+
+func (t *Task) runPlanJob() error {
+	maxPage := 1000
+	pageSize := 1000
+	page := 1
+	taskNum := 0
+	for page < maxPage {
+		taskList, total, err := t.taskModel.List(context.TODO(), models.ListTaskParam{
+			Status: models.TaskStatusEnabled,
+			Level:  models.ParentLevelTask,
+			Type:   models.TaskTypePlanJob,
+			BaseListParam: models.BaseListParam{
+				Offset: (page - 1) * pageSize,
+				Limit:  pageSize,
+			},
+			RunAtInterval: planJobInterval,
+		})
+		if err != nil {
+			return err
+		}
+		for _, item := range taskList {
+			t.Run(item)
+			taskNum++
+		}
+		maxPage = int(total) % pageSize
+		page++
+	}
+	klog.V(1).Infof("%d plan job begin to run", taskNum)
 	return nil
 }
 

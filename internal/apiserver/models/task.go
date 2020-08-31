@@ -25,6 +25,7 @@ const (
 	TaskLogStatusCancel        = "cancel"
 	TaskTypeJob                = "job"
 	TaskTypeCronJob            = "cronjob"
+	TaskTypePlanJob            = "planjob"
 )
 
 type Task struct {
@@ -35,7 +36,7 @@ type Task struct {
 	DependencyStatus string           `json:"dependency_status,omitempty" xorm:"varchar(32) notnull default 'strong'"` // 依赖关系 strong:强依赖 主任务执行成功, 依赖任务才会被执行, weak:弱依赖
 	Spec             string           `json:"spec,omitempty" xorm:"varchar(64) notnull"`                               // crontab 表达式
 	Protocol         string           `json:"protocol,omitempty" xorm:"varchar(32) notnull index"`                     // 协议 1:http 2:系统命令
-	Command          string           `json:"command,omitempty" xorm:"varchar(256) notnull"`                           // URL地址或shell命令
+	Command          string           `json:"command,omitempty" xorm:"varchar(1024) notnull"`                          // URL地址或shell命令
 	HttpMethod       string           `json:"http_method,omitempty" xorm:"varchar(32) notnull default 'get'"`          // http请求方法
 	Timeout          int              `json:"timeout,omitempty" xorm:"mediumint notnull default 0"`                    // 任务执行超时时间(单位秒),0不限制
 	Multi            bool             `json:"multi,omitempty" xorm:"notnull default true"`                             // 是否允许多实例运行
@@ -49,6 +50,7 @@ type Task struct {
 	Type             string           `json:"type,omitempty" xorm:"varchar(32) notnull default 'cronjob'"`
 	Remark           string           `json:"remark,omitempty" xorm:"varchar(100) notnull default ''"` // 备注
 	Status           string           `json:"status,omitempty" xorm:"varchar(32) notnull index"`       // 状态 1:正常 0:停止
+	RunAt            *time.Time       `json:"run_at,omitempty" xorm:"index"`
 	NextRunTime      *time.Time       `json:"next_run_time,omitempty" xorm:"-"`
 	Hosts            []TaskHostDetail `json:"hosts,omitempty" xorm:"-"`
 }
@@ -69,16 +71,17 @@ type SchemaTask schema.TaskRequest
 type ListTaskParam struct {
 	BaseListParam
 	GetParam
-	Status   string
-	Level    string
-	HostID   int
-	Protocol string
-	Tag      string
-	Type     string
+	Status        string
+	Level         string
+	HostID        int
+	Protocol      string
+	Tag           string
+	Type          string
+	RunAtInterval time.Duration
 }
 
 func (s SchemaTask) ToModelTask() *Task {
-	return &Task{
+	t := &Task{
 		Name:             s.Name,
 		Level:            s.Level,
 		DependencyTaskId: s.DependencyTaskId,
@@ -100,6 +103,11 @@ func (s SchemaTask) ToModelTask() *Task {
 		Remark:           s.Remark,
 		Status:           TaskStatusEnabled,
 	}
+	if s.RunAt != nil {
+		ts := s.RunAt.Time
+		t.RunAt = &ts
+	}
+	return t
 }
 
 func (s SchemaTask) ToModelTaskHosts(taskId int) []TaskHost {
