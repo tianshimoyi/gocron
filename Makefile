@@ -53,3 +53,11 @@ build-gocron-agent:
 push-image:
 	docker push $(ORG)/gocron-agent:latest
 	docker push $(ORG)/gocron-server:latest
+
+.PHONY: test
+test:
+	docker-compose up -d
+	sleep 15
+	go test ./test
+	docker-compose stop
+	docker-compose rm -f
