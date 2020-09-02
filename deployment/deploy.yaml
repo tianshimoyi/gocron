@@ -1,0 +1,179 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-pass
+type: Opaque
+data:
+  password.txt: dGhpbmtiaWcx
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gocron-db
+  labels:
+    app: gocron
+    tier: db
+spec:
+  selector:
+    app: gocron
+    tier: db
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gocron-db-pvc
+  labels:
+    app: gocron
+    tier: db
+spec:
+  storageClassName: cinder-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gocron-db-deployment
+  labels:
+    app: gocron
+    tier: db
+spec:
+  selector:
+    matchLabels:
+      app: gocron
+      tier: db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gocron
+        tier: db
+    spec:
+      containers:
+        - name: gocron-db
+          image: postgres:12.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password.txt
+                  name: postgres-pass
+            - name: POSTGRES_DB
+              value: 'gocron'
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+              name: postgres
+          volumeMounts:
+            - name: db-persistent-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db-persistent-storage
+          persistentVolumeClaim:
+            claimName: gocron-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gocron
+  labels:
+    app: gocron
+spec:
+  ports:
+    - port: 8080
+      name: gocron
+      targetPort: 8080
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: gocron
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gocron
+spec:
+  selector:
+    matchLabels:
+      app: gocron
+  serviceName: "gocron"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gocron
+    spec:
+      terminationGracePeriodSeconds: 10
+      initContainers:
+        - name: wait4pg
+          image: busybox:1.28.4
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'until nc -z gocron-db 5432; do echo "waiting for pg"; sleep 2; done;']
+      containers:
+        - name: gocron
+          image: caas4/gocron-server:latest
+          imagePullPolicy: Always
+          command: ["/app/gocron-server", "--db-host=gocron-db", "--db-port=5432", "--db-username=postgres", "--db-password=thinkbig1", "--db-name=gocron", "--v=1"]
+          env:
+            - name: DRONE_REVISION
+              value: unknow
+          ports:
+            - containerPort: 8080
+              name: gocron
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gocron-agent
+  labels:
+    app: gocron-agent
+spec:
+  ports:
+    - port: 8080
+      name: gocron-agent
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: gocron-agent
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gocron-agent
+spec:
+  selector:
+    matchLabels:
+      app: gocron-agent
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gocron-agent
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: gocron-agent
+          image: caas4/gocron-agent:latest
+          imagePullPolicy: Always
+          command: ["/app/gocron-agent", "--v=1"]
+          env:
+            - name: DRONE_REVISION
+              value: unknow
+          ports:
+            - containerPort: 8080
+              name: gocron-agent
