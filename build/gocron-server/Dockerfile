@@ -19,7 +19,7 @@ RUN apk update \
   && apk add --no-cache \
   ca-certificates tzdata \
   && update-ca-certificates 2>/dev/null || true \
-  && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+  && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
   && mkdir /app
 WORKDIR /app
 COPY --from=builder /app/dist/gocron-server /app/gocron-server
