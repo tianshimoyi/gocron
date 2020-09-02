@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  postgres:
+    image: "postgres:12.2"
+    environment:
+      - POSTGRES_PASSWORD=thinkbig1
+      - POSTGRES_DB=gocron
+    #command: -c timezone=Asia/Shanghai
+    restart: always
+    #volumes:
+    #- /etc/localtime:/etc/localtime
+    ports:
+      - "5432:5432"
+    container_name: "postgres"
+  gocron-server:
+    image: "caas4/gocron-server:latest"
+    restart: always
+    prots:
+      - "8080:8080"
+    command: /app/gocron-server --db-host=postgres --db-port=5432 --db-username=postgres --db-password=thinkbig1 --db-name=gocron --v=1
+  gocron-agent:
+    image: "caas4/gocron-agent:latest"
+    restart: always
+    ports:
+      - "8090:8090"
+    command: /app/gocron-agent --insecure-port=8090

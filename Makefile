@@ -48,3 +48,8 @@ build-gocron-server:
 .PHONY: build-gocron-agent
 build-gocron-agent:
 	docker build --build-arg REPO_URL=$(REPO_URL) --build-arg BRANCH=$(BRANCH) --build-arg COMMIT_REF=$(COMMIT_REF) -f build/gocron-agent/Dockerfile -t $(ORG)/gocron-agent:latest .
+
+.PHONY: push-image
+push-image:
+	docker push $(ORG)/gocron-agent:latest
+	docker push $(ORG)/gocron-server:latest
