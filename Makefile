@@ -58,6 +58,6 @@ push-image:
 test:
 	docker-compose up -d
 	sleep 15
-	go test ./test
+	go test -race ./test
 	docker-compose stop
 	docker-compose rm -f
