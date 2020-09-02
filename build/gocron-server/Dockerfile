@@ -17,8 +17,9 @@ LABEL commit-ref=${COMMIT_REF}
 RUN apk update \
   && apk upgrade \
   && apk add --no-cache \
-  ca-certificates \
+  ca-certificates tzdata \
   && update-ca-certificates 2>/dev/null || true \
+  && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
   && mkdir /app
 WORKDIR /app
 COPY --from=builder /app/dist/gocron-server /app/gocron-server

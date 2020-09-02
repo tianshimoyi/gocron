@@ -16,9 +16,11 @@ services:
   gocron-server:
     image: "caas4/gocron-server:latest"
     restart: always
-    prots:
+    ports:
       - "8080:8080"
     command: /app/gocron-server --db-host=postgres --db-port=5432 --db-username=postgres --db-password=thinkbig1 --db-name=gocron --v=1
+    depends_on:
+      - postgres
   gocron-agent:
     image: "caas4/gocron-agent:latest"
     restart: always
