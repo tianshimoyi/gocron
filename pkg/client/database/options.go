@@ -85,7 +85,7 @@ func (m *Options) AddFlags(fs *pflag.FlagSet, c *Options) {
 func (m *Options) GetDSN() string {
 	switch m.Type {
 	case "mysql":
-		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&allowNativePasswords=true", m.Username, m.Password, m.Host, m.Port, m.DBName)
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&allowNativePasswords=true", m.Username, m.Password, m.Host, m.Port, m.DBName)
 	case "sqlite3":
 		return m.DBName
 	case "postgres":
