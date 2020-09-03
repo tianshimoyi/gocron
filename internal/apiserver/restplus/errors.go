@@ -41,6 +41,6 @@ func HandleConflict(response *restful.Response, req *restful.Request, err error)
 }
 
 func HandleUnauthorized(response *restful.Response, req *restful.Request, err error) {
-	klog.Error("service forbidden error: ", err)
+	klog.Error("service unauthorized error: ", err)
 	_ = response.WriteServiceError(http.StatusUnauthorized, restful.ServiceError{Code: http.StatusUnauthorized, Message: sanitizer.Replace(err.Error())})
 }
