@@ -26,6 +26,8 @@ type APIServer struct {
 	Server *http.Server
 	// taskService
 	TaskService *task.Task
+	// jwt secret
+	JwtSecret string
 }
 
 func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
@@ -36,6 +38,12 @@ func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
 	s.container.RecoverHandler(func(panicReson interface{}, httpWriter http.ResponseWriter) {
 		filter.LogStackOnRecover(panicReson, httpWriter)
 	})
+	if s.JwtSecret != "" {
+		filter.SetupSecret(s.JwtSecret)
+		s.container.Filter(filter.AuthenticateValidate)
+	} else {
+		klog.V(2).Infof("jwt secret is null, not init authenticate middleware")
+	}
 	s.InstallAPIs()
 	for _, ws := range s.container.RegisteredWebServices() {
 		klog.V(2).Infof("%s", ws.RootPath())

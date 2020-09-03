@@ -12,12 +12,14 @@ import (
 type ServerRunOptions struct {
 	GenericServerRunOptions *genericoptions.ServerRunOptions
 	*config.Config
+	JwtSecret string
 }
 
 func NewServerRunOptions() *ServerRunOptions {
 	s := &ServerRunOptions{
 		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
 		Config:                  config.New(),
+		JwtSecret:               "",
 	}
 
 	return s
@@ -25,6 +27,7 @@ func NewServerRunOptions() *ServerRunOptions {
 
 func (s *ServerRunOptions) Flags() (fss cliflag.NamedFlagSets) {
 	fs := fss.FlagSet("generic")
+	fs.StringVar(&s.JwtSecret, "jwt-secret", s.JwtSecret, "jwt secret for authenticate")
 	s.GenericServerRunOptions.AddFlags(fs, s.GenericServerRunOptions)
 	s.DatabaseOptions.AddFlags(fss.FlagSet("db"), s.DatabaseOptions)
 	fs = fss.FlagSet("klog")

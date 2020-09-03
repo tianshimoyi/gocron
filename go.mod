@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/coreos/go-semver v0.3.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/go-restful v2.9.6+incompatible
 	github.com/emicklei/go-restful-openapi v1.4.1
 	github.com/go-openapi/spec v0.0.0-20180415031709-bcff419492ee
@@ -22,7 +23,6 @@ require (
 	google.golang.org/grpc v1.27.1
 	k8s.io/apimachinery v0.18.8
 	k8s.io/component-base v0.18.8
-	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.3.0
 	xorm.io/core v0.7.2-0.20190928055935-90aeac8d08eb
 )
