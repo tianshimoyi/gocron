@@ -9,7 +9,6 @@ import (
 	"github.com/x893675/gocron/internal/apiserver/schema"
 	"github.com/x893675/gocron/pkg/pb"
 	"github.com/x893675/gocron/pkg/utils/stringutils"
-	"k8s.io/klog/v2"
 	"net/http"
 )
 
@@ -63,8 +62,6 @@ func (s *systemHandler) DeleteNode(request *restful.Request, response *restful.R
 }
 
 func (s *systemHandler) ListNode(request *restful.Request, response *restful.Response) {
-	uid := request.Attribute("X-GOCRON-UID").(string)
-	klog.V(2).Infof("uid is %s", uid)
 	limit, offset := restplus.ParsePaging(request)
 	reverse := restplus.GetBoolValueWithDefault(request, restplus.ReverseParam, false)
 	hosts, total, err := s.hostModel.List(request.Request.Context(), models.ListHostParam{
