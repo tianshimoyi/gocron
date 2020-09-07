@@ -31,7 +31,7 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 		restplus.HandleBadRequest(response, request, err)
 		return
 	}
-	if creator := request.Attribute(constants.GoCronUsernameHeader).(string); creator != "" {
+	if creator, ok := request.Attribute(constants.GoCronUsernameHeader).(string); ok && creator != "" {
 		item.Creator = creator
 	}
 	exist, err := t.taskModel.Exist(request.Request.Context(), models.GetParam{
