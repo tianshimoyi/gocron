@@ -51,6 +51,7 @@ type Task struct {
 	Remark           string           `json:"remark,omitempty" xorm:"varchar(100) notnull default ''"` // 备注
 	Status           string           `json:"status,omitempty" xorm:"varchar(32) notnull index"`       // 状态 1:正常 0:停止
 	RunAt            *time.Time       `json:"run_at,omitempty" xorm:"index"`
+	Creator          string           `json:"creator,omitempty" xorm:"index"`
 	NextRunTime      *time.Time       `json:"next_run_time,omitempty" xorm:"-"`
 	Hosts            []TaskHostDetail `json:"hosts,omitempty" xorm:"-"`
 }
@@ -77,6 +78,7 @@ type ListTaskParam struct {
 	Protocol      string
 	Tag           string
 	Type          string
+	Creator       string
 	RunAtInterval time.Duration
 }
 
@@ -101,6 +103,7 @@ func (s SchemaTask) ToModelTask() *Task {
 		Tag:              s.Tag,
 		Type:             s.Type,
 		Remark:           s.Remark,
+		Creator:          s.Creator,
 		Status:           TaskStatusEnabled,
 	}
 	if s.RunAt != nil {

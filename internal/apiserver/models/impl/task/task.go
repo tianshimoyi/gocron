@@ -134,6 +134,9 @@ func (t *taskStore) parseListCondition(session *xorm.Session, param models.ListT
 	if param.Type != "" {
 		session.And("type = ?", param.Type)
 	}
+	if param.Creator != "" {
+		session.And("creator = ?", param.Creator)
+	}
 	if param.RunAtInterval != 0 {
 		t := time.Now().UTC()
 		//tAfter := t.Add(param.RunAtInterval

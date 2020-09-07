@@ -70,6 +70,10 @@ func AddToContainer(c *restful.Container, dbClient *database.Client, taskService
 			Required(false).
 			DataType("string").
 			DefaultValue("")).
+		Param(ws.QueryParameter("creator", "task creator").
+			Required(false).
+			DataType("string").
+			DefaultValue("")).
 		Writes([]models.Task{}).
 		Returns(http.StatusOK, constants.HTTP200, restplus.PageableResponse{}).
 		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))

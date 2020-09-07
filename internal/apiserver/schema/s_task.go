@@ -22,4 +22,5 @@ type TaskRequest struct {
 	NotifyKeyword    string `json:"notify_keyword" description:"notify keyword" optional:"true"`
 	Type             string `json:"type" description:"task type, job,cronjob or planjob"  enum:"job|cronjob|planjob" validate:"required,oneof=job cronjob planjob"`
 	RunAt            *Time  `json:"run_at,omitempty" description:"when type is planjob, run at must be validate" optional:"true"`
+	Creator          string `json:"creator,omitempty" description:"task creator" optional:"true"`
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/emicklei/go-restful"
+	"github.com/x893675/gocron/internal/apiserver/constants"
 	"github.com/x893675/gocron/internal/apiserver/models"
 	"github.com/x893675/gocron/internal/apiserver/restplus"
 	"github.com/x893675/gocron/internal/apiserver/schema"
@@ -29,6 +30,9 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 	if err != nil {
 		restplus.HandleBadRequest(response, request, err)
 		return
+	}
+	if creator := request.Attribute(constants.GoCronUsernameHeader).(string); creator != "" {
+		item.Creator = creator
 	}
 	exist, err := t.taskModel.Exist(request.Request.Context(), models.GetParam{
 		Name: item.Name,
@@ -107,6 +111,7 @@ func (t *taskHandler) ListTask(request *restful.Request, response *restful.Respo
 		HostID:   restplus.GetIntValueWithDefault(request, "hostid", 0),
 		Protocol: restplus.GetStringValueWithDefault(request, "protocol", ""),
 		Tag:      restplus.GetStringValueWithDefault(request, "tag", ""),
+		Creator:  restplus.GetStringValueWithDefault(request, "creator", ""),
 	}
 	result, total, err := t.taskModel.List(request.Request.Context(), param)
 	if err != nil {

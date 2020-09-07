@@ -1,0 +1,440 @@
+{
+	"info": {
+		"_postman_id": "f10414f9-9c38-4d39-9d08-e0c87fe6c9a2",
+		"name": "gocron",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "AddNode",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"node4\",\n    \"alias\": \"test\",\n    \"port\": 8080,\n    \"addr\": \"192.168.234.137\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/system/v1/nodes",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"system",
+						"v1",
+						"nodes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateNode",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"node2\",\n    \"port\": 25,\n    \"alais\": \"haha\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/system/v1/nodes/:node",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"system",
+						"v1",
+						"nodes",
+						":node"
+					],
+					"variable": [
+						{
+							"key": "node",
+							"value": "node10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ListNode",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/system/v1/nodes",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"system",
+						"v1",
+						"nodes"
+					],
+					"query": [
+						{
+							"key": "paging",
+							"value": "limit=1,page=1",
+							"disabled": true
+						},
+						{
+							"key": "reverse",
+							"value": "true",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ListTask",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/core/v1/tasks",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"core",
+						"v1",
+						"tasks"
+					],
+					"query": [
+						{
+							"key": "paging",
+							"value": "limit=1,page=1",
+							"disabled": true
+						},
+						{
+							"key": "reverse",
+							"value": "true",
+							"disabled": true
+						},
+						{
+							"key": "hostid",
+							"value": "3",
+							"disabled": true
+						},
+						{
+							"key": "status",
+							"value": "enabled",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetNode",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/system/v1/nodes/:node",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"system",
+						"v1",
+						"nodes",
+						":node"
+					],
+					"variable": [
+						{
+							"key": "node",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PingNode",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/system/v1/nodes/:node/ping",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"system",
+						"v1",
+						"nodes",
+						":node",
+						"ping"
+					],
+					"variable": [
+						{
+							"key": "node",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CheckNodeExist",
+			"request": {
+				"method": "HEAD",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/system/v1/nodes/:node",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"system",
+						"v1",
+						"nodes",
+						":node"
+					],
+					"variable": [
+						{
+							"key": "node",
+							"value": "node1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteNode",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/system/v1/nodes/:node",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"system",
+						"v1",
+						"nodes",
+						":node"
+					],
+					"variable": [
+						{
+							"key": "node",
+							"value": "node10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateTask",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"command\": \"echo \\\"hello world\\\"\",\n  \"dependency_status\": \"strong\",\n  \"dependency_task_id\": \"\",\n  \"hosts\": \"1\",\n  \"http_method\": \"\",\n  \"level\": \"parent\",\n  \"multi\": false,\n  \"name\": \"test6\",\n  \"protocol\": \"shell\",\n  \"remark\": \"test task\",\n  \"retry_interval\": 10,\n  \"retry_times\": 1,\n  \"spec\": \"\",\n  \"tag\": \"test\",\n  \"timeout\": 100,\n  \"type\": \"planjob\",\n  \"run_at\": \"2020-08-31T09:13:31Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/core/v1/tasks",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"core",
+						"v1",
+						"tasks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetTask",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/core/v1/tasks/:task",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"core",
+						"v1",
+						"tasks",
+						":task"
+					],
+					"variable": [
+						{
+							"key": "task",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetTaskLogs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/core/v1/tasks/:task/logs",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"core",
+						"v1",
+						"tasks",
+						":task",
+						"logs"
+					],
+					"variable": [
+						{
+							"key": "task",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteTaskLog",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/core/v1/tasks/:task/logs",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"core",
+						"v1",
+						"tasks",
+						":task",
+						"logs"
+					],
+					"variable": [
+						{
+							"key": "task",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "EnableTask",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/core/v1/tasks/:task/enable",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"core",
+						"v1",
+						"tasks",
+						":task",
+						"enable"
+					],
+					"variable": [
+						{
+							"key": "task",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DisableTask",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/core/v1/tasks/:task/disable",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"core",
+						"v1",
+						"tasks",
+						":task",
+						"disable"
+					],
+					"variable": [
+						{
+							"key": "task",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

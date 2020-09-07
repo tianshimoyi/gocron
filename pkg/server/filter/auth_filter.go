@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/emicklei/go-restful"
+	"github.com/x893675/gocron/internal/apiserver/constants"
 	"github.com/x893675/gocron/internal/apiserver/restplus"
 	"k8s.io/klog/v2"
 	"net/http"
@@ -28,7 +29,12 @@ func AuthenticateValidate(req *restful.Request, resp *restful.Response, chain *r
 		restplus.HandleUnauthorized(resp, req, err)
 		return
 	}
-	_, err = validate(uToken)
+	token, err := validate(uToken)
+	if err != nil {
+		restplus.HandleUnauthorized(resp, req, err)
+		return
+	}
+	err = injectContext(req, token)
 	if err != nil {
 		restplus.HandleUnauthorized(resp, req, err)
 		return
@@ -84,4 +90,14 @@ func providerKey(token *jwt.Token) (interface{}, error) {
 	default:
 		return secret, nil
 	}
+}
+
+func injectContext(req *restful.Request, token *jwt.Token) error {
+	payload, _ := token.Claims.(jwt.MapClaims)
+	username, ok := payload["sub"].(string)
+	if !ok {
+		return fmt.Errorf("invalid payload")
+	}
+	req.SetAttribute(constants.GoCronUsernameHeader, username)
+	return nil
 }

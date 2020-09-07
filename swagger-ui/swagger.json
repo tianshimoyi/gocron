@@ -92,6 +92,12 @@
             "description": "task status",
             "name": "status",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "task creator",
+            "name": "creator",
+            "in": "query"
           }
         ],
         "responses": {
@@ -761,6 +767,9 @@
           "type": "string",
           "format": "date-time"
         },
+        "creator": {
+          "type": "string"
+        },
         "dependency_status": {
           "type": "string"
         },
@@ -1027,6 +1036,10 @@
       "properties": {
         "command": {
           "description": "shell command or http url",
+          "type": "string"
+        },
+        "creator": {
+          "description": "task creator",
           "type": "string"
         },
         "dependency_status": {
