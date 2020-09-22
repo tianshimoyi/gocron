@@ -9,8 +9,11 @@ import (
 	taskLogImpl "github.com/x893675/gocron/internal/apiserver/models/impl/tasklog"
 	"github.com/x893675/gocron/internal/apiserver/rpc"
 	"github.com/x893675/gocron/pkg/client/database"
+	"github.com/x893675/gocron/pkg/client/notify"
+	"github.com/x893675/gocron/pkg/utils/stringutils"
 	"k8s.io/klog/v2"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -41,9 +44,11 @@ type Task struct {
 
 	httpHandler  *HTTPHandler
 	shellHandler *RPCHandler
+	// notify client
+	Informer *notify.Inform
 }
 
-func NewTaskService(dbClient *database.Client) *Task {
+func NewTaskService(dbClient *database.Client, informer *notify.Inform) *Task {
 	t := &Task{
 		serviceCron:      cron.New(),
 		runInstance:      &Instance{m: sync.Map{}},
@@ -53,7 +58,9 @@ func NewTaskService(dbClient *database.Client) *Task {
 		taskLogModel:     taskLogImpl.New(dbClient),
 		httpHandler:      &HTTPHandler{},
 		shellHandler:     &RPCHandler{},
+		Informer:         informer,
 	}
+	//t.Informer.Run()
 	return t
 }
 
@@ -299,9 +306,36 @@ func (t *Task) afterExecJob(job *models.Task, taskResult TaskResult, taskLogId i
 
 	//TODO
 	// 发送邮件
-	//go SendNotification(taskModel, taskResult)
+	go t.sendNotification(job, taskResult)
 	// 执行依赖任务
 	//go execDependencyTask(taskModel, taskResult)
+}
+
+func (t *Task) sendNotification(job *models.Task, taskResult TaskResult) {
+	klog.V(2).Infof("send notification, job is %v", *job)
+	if job.NotifyType == models.NotifyDisable {
+		return
+	}
+	if job.NotifyStatus == models.NotifyStatusFailed && taskResult.Err == nil {
+		return
+	}
+	var status string
+	if taskResult.Err == nil {
+		status = models.NotifyStatusSuccess
+	} else {
+		status = models.NotifyStatusFailed
+	}
+	content := fmt.Sprintf("============\n============\n============\n任务名称: %s\n状态: %s\n输出:\n %s\n", job.Name, status, taskResult.Result)
+	m := notify.Message{
+		Sid:        job.NotifySendId,
+		Rids:       strings.Split(job.NotifyReceiverId, ","),
+		Title:      fmt.Sprintf("%s-result", job.Name),
+		Content:    stringutils.EscapeJson(content),
+		Cid:        "job",
+		NotifyType: job.NotifyType,
+	}
+	klog.V(2).Infof("push notify queue %v", m)
+	t.Informer.Push(m)
 }
 
 // 更新任务日志

@@ -8,6 +8,7 @@ import (
 	"github.com/x893675/gocron/internal/apiserver"
 	"github.com/x893675/gocron/internal/apiserver/service/task"
 	"github.com/x893675/gocron/pkg/client/database"
+	"github.com/x893675/gocron/pkg/client/notify"
 	serverConfig "github.com/x893675/gocron/pkg/config"
 	"github.com/x893675/gocron/pkg/utils/signals"
 	"github.com/x893675/gocron/pkg/utils/term"
@@ -83,7 +84,9 @@ func NewApiServer(s *options.ServerRunOptions, stopCh <-chan struct{}) (*apiserv
 		return nil, err
 	}
 	apiServer.Db = dbClient
-	apiServer.TaskService = task.NewTaskService(dbClient)
+	informer := notify.NewInform(s.NotifyOptions)
+	go informer.Run(stopCh)
+	apiServer.TaskService = task.NewTaskService(dbClient, informer)
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", s.GenericServerRunOptions.InsecurePort),
 	}

@@ -26,6 +26,10 @@ const (
 	TaskTypeJob                = "job"
 	TaskTypeCronJob            = "cronjob"
 	TaskTypePlanJob            = "planjob"
+	NotifyDisable              = "disable"
+	NotifyStatusSuccess        = "success"
+	NotifyStatusFailed         = "failed"
+	NotifyTypeWebhook          = "webhook"
 )
 
 type Task struct {
@@ -36,16 +40,16 @@ type Task struct {
 	DependencyStatus string           `json:"dependency_status,omitempty" xorm:"varchar(32) notnull default 'strong'"` // 依赖关系 strong:强依赖 主任务执行成功, 依赖任务才会被执行, weak:弱依赖
 	Spec             string           `json:"spec,omitempty" xorm:"varchar(64) notnull"`                               // crontab 表达式
 	Protocol         string           `json:"protocol,omitempty" xorm:"varchar(32) notnull index"`                     // 协议 1:http 2:系统命令
-	Command          string           `json:"command,omitempty" xorm:"varchar(1024) notnull"`                          // URL地址或shell命令
+	Command          string           `json:"command,omitempty" xorm:"varchar(2048) notnull"`                          // URL地址或shell命令
 	HttpMethod       string           `json:"http_method,omitempty" xorm:"varchar(32) notnull default 'get'"`          // http请求方法
 	Timeout          int              `json:"timeout,omitempty" xorm:"mediumint notnull default 0"`                    // 任务执行超时时间(单位秒),0不限制
 	Multi            bool             `json:"multi,omitempty" xorm:"notnull default true"`                             // 是否允许多实例运行
 	RetryTimes       int8             `json:"retry_times,omitempty" xorm:"tinyint notnull default 0"`                  // 重试次数
 	RetryInterval    int16            `json:"retry_interval,omitempty" xorm:"smallint notnull default 0"`              // 重试间隔时间
-	NotifyStatus     int8             `json:"notify_status,omitempty" xorm:"tinyint notnull default 1"`                // 任务执行结束是否通知 0: 不通知 1: 失败通知 2: 执行结束通知 3: 任务执行结果关键字匹配通知
-	NotifyType       int8             `json:"notify_type,omitempty" xorm:"tinyint notnull default 0"`                  // 通知类型 1: 邮件 2: slack 3: webhook
-	NotifyReceiverId string           `json:"notify_receiver_id,omitempty" xorm:"varchar(256) notnull default '' "`    // 通知接受者ID, setting表主键ID，多个ID逗号分隔
-	NotifyKeyword    string           `json:"notify_keyword,omitempty" xorm:"varchar(128) notnull default '' "`
+	NotifyStatus     string           `json:"notify_status,omitempty" xorm:"varchar(32) notnull default 'disable'"`    // 任务执行结束是否通知 0: 不通知 1: 失败通知 2: 执行结束通知 3: 任务执行结果关键字匹配通知
+	NotifyType       string           `json:"notify_type,omitempty" xorm:"varchar(32) notnull default ''"`             // 通知类型 1: 邮件 2: slack 3: webhook
+	NotifyReceiverId string           `json:"notify_receiver_id,omitempty" xorm:"varchar(1024) notnull default '' "`   // 通知接受者ID, setting表主键ID，多个ID逗号分隔
+	NotifySendId     string           `json:"notify_send_id,omitempty" xorm:"varchar(128) notnull default '' "`
 	Tag              string           `json:"tag,omitempty" xorm:"varchar(32) notnull default ''"`
 	Type             string           `json:"type,omitempty" xorm:"varchar(32) notnull default 'cronjob'"`
 	Remark           string           `json:"remark,omitempty" xorm:"varchar(100) notnull default ''"` // 备注
@@ -96,10 +100,6 @@ func (s SchemaTask) ToModelTask() *Task {
 		Multi:            s.Multi,
 		RetryTimes:       s.RetryTimes,
 		RetryInterval:    s.RetryInterval,
-		NotifyStatus:     s.NotifyStatus,
-		NotifyType:       s.NotifyType,
-		NotifyReceiverId: s.NotifyReceiverId,
-		NotifyKeyword:    s.NotifyKeyword,
 		Tag:              s.Tag,
 		Type:             s.Type,
 		Remark:           s.Remark,
@@ -109,6 +109,14 @@ func (s SchemaTask) ToModelTask() *Task {
 	if s.RunAt != nil {
 		ts := s.RunAt.Time
 		t.RunAt = &ts
+	}
+	if s.Notify != nil {
+		t.NotifyStatus = s.Notify.NotifyStatus
+		t.NotifyType = s.Notify.NotifyType
+		t.NotifyReceiverId = s.Notify.NotifyReceiverId
+		t.NotifySendId = s.Notify.NotifySendId
+	} else {
+		t.NotifyStatus = NotifyDisable
 	}
 	return t
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"github.com/x893675/gocron/pkg/client/database"
+	"github.com/x893675/gocron/pkg/client/notify"
 	"reflect"
 	"strings"
 )
@@ -19,12 +20,14 @@ const (
 // Config defines everything needed for server to deal with external services
 type Config struct {
 	DatabaseOptions *database.Options
+	NotifyOptions   *notify.Options
 }
 
 // newConfig creates a default non-empty Config
 func New() *Config {
 	return &Config{
 		DatabaseOptions: database.NewDatabaseOptions(),
+		NotifyOptions:   notify.NewNotifyOptions(),
 	}
 }
 
@@ -86,5 +89,8 @@ func (conf *Config) ToMap() map[string]bool {
 func (conf *Config) stripEmptyOptions() {
 	if conf.DatabaseOptions != nil && conf.DatabaseOptions.Host == "" {
 		conf.DatabaseOptions = nil
+	}
+	if conf.NotifyOptions != nil && (conf.NotifyOptions.WebhookOpt != nil || conf.NotifyOptions.MailOptions != nil) {
+		conf.NotifyOptions = nil
 	}
 }

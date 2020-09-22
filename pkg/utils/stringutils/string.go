@@ -2,6 +2,8 @@ package stringutils
 
 import (
 	"strconv"
+	"strings"
+	"unsafe"
 )
 
 // S 字符串类型转换
@@ -140,4 +142,37 @@ func (s S) DefaultFloat32(defaultVal float32) float32 {
 		return defaultVal
 	}
 	return f
+}
+
+// 转义json特殊字符
+func EscapeJson(s string) string {
+	specialChars := []string{"\\", "\b", "\f", "\n", "\r", "\t", "\""}
+	replaceChars := []string{"\\\\", "\\b", "\\f", "\\n", "\\r", "\\t", "\\\""}
+
+	return ReplaceStrings(s, specialChars, replaceChars)
+}
+
+func ReplaceStrings(s string, old []string, replace []string) string {
+	if s == "" {
+		return s
+	}
+	if len(old) != len(replace) {
+		return s
+	}
+
+	for i, v := range old {
+		s = strings.Replace(s, v, replace[i], 1000)
+	}
+
+	return s
+}
+
+// string []byte zero copy
+func String2bytes(s string) []byte {
+	x := (*[2]uintptr)(unsafe.Pointer(&s))
+	h := [3]uintptr{x[0], x[1], x[1]}
+	return *(*[]byte)(unsafe.Pointer(&h))
+}
+func Bytes2string(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
 }

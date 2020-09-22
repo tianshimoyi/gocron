@@ -2,8 +2,8 @@ package task
 
 import (
 	"fmt"
-	"github.com/x893675/gocron/internal/apiserver/httpclient"
 	"github.com/x893675/gocron/internal/apiserver/models"
+	"github.com/x893675/gocron/pkg/client/httpclient"
 	"net/http"
 	"strings"
 )

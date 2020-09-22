@@ -30,6 +30,7 @@ func (s *ServerRunOptions) Flags() (fss cliflag.NamedFlagSets) {
 	fs.StringVar(&s.JwtSecret, "jwt-secret", s.JwtSecret, "jwt secret for authenticate")
 	s.GenericServerRunOptions.AddFlags(fs, s.GenericServerRunOptions)
 	s.DatabaseOptions.AddFlags(fss.FlagSet("db"), s.DatabaseOptions)
+	s.NotifyOptions.AddFlags(fss.FlagSet("notify"))
 	fs = fss.FlagSet("klog")
 	local := flag.NewFlagSet("klog", flag.ExitOnError)
 	klog.InitFlags(local)
