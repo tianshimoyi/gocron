@@ -88,7 +88,7 @@ func NewApiServer(s *options.ServerRunOptions, stopCh <-chan struct{}) (*apiserv
 	go informer.Run(stopCh)
 	apiServer.TaskService = task.NewTaskService(dbClient, informer)
 	server := &http.Server{
-		Addr: fmt.Sprintf(":%d", s.GenericServerRunOptions.InsecurePort),
+		Addr: fmt.Sprintf("%s:%d", s.GenericServerRunOptions.BindAddress, s.GenericServerRunOptions.InsecurePort),
 	}
 	if s.GenericServerRunOptions.SecurePort != 0 {
 		certificate, err := tls.LoadX509KeyPair(s.GenericServerRunOptions.TlsCertFile, s.GenericServerRunOptions.TlsPrivateKey)
