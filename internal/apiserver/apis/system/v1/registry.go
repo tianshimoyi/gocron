@@ -28,7 +28,7 @@ func AddToContainer(c *restful.Container, dbClient *database.Client) error {
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.NodeResourceTag}).
 		Doc("Add host").
 		Reads(taskSchema.NodeRequest{}).
-		Returns(http.StatusCreated, constants.HTTP201, nil).
+		Returns(http.StatusCreated, constants.HTTP201, models.Host{}).
 		Returns(http.StatusBadRequest, constants.HTTP400, restful.ServiceError{}).
 		Returns(http.StatusConflict, constants.HTTP409, restful.ServiceError{}).
 		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))
@@ -90,7 +90,7 @@ func AddToContainer(c *restful.Container, dbClient *database.Client) error {
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.NodeResourceTag}).
 		Doc("Update host").
 		Reads(taskSchema.NodeRequest{}).
-		Returns(http.StatusCreated, constants.HTTP200, nil).
+		Returns(http.StatusCreated, constants.HTTP200, models.Host{}).
 		Returns(http.StatusBadRequest, constants.HTTP400, restful.ServiceError{}).
 		Returns(http.StatusConflict, constants.HTTP409, restful.ServiceError{}).
 		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))

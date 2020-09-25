@@ -29,7 +29,7 @@ func AddToContainer(c *restful.Container, dbClient *database.Client, taskService
 		Metadata(restfulspec.KeyOpenAPITags, []string{constants.TaskResourceTag}).
 		Doc("Create task").
 		Reads(taskSchema.TaskRequest{}).
-		Returns(http.StatusCreated, constants.HTTP201, nil).
+		Returns(http.StatusCreated, constants.HTTP201, models.Task{}).
 		Returns(http.StatusBadRequest, constants.HTTP400, restful.ServiceError{}).
 		Returns(http.StatusConflict, constants.HTTP409, restful.ServiceError{}).
 		Returns(http.StatusInternalServerError, constants.HTTP500, restful.ServiceError{}))

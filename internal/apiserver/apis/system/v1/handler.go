@@ -46,7 +46,14 @@ func (s *systemHandler) AddNode(request *restful.Request, response *restful.Resp
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
-	response.WriteHeader(http.StatusCreated)
+	h, err := s.hostModel.Get(request.Request.Context(), models.GetParam{
+		Name: host.Name,
+	})
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	_ = response.WriteHeaderAndEntity(http.StatusCreated, h)
 }
 
 func (s *systemHandler) DeleteNode(request *restful.Request, response *restful.Response) {
@@ -145,7 +152,14 @@ func (s *systemHandler) UpdateNode(request *restful.Request, response *restful.R
 		restplus.HandleInternalError(response, request, err)
 		return
 	}
-	response.WriteHeader(http.StatusOK)
+	h, err := s.hostModel.Get(request.Request.Context(), models.GetParam{
+		ID: int(item.Id),
+	})
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	_ = response.WriteHeaderAndEntity(http.StatusOK, h)
 }
 
 func (s *systemHandler) PingNode(request *restful.Request, response *restful.Response) {

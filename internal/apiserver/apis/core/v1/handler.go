@@ -78,7 +78,15 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 	default:
 		klog.V(2).Infof("only create task record, do nothing for planjob")
 	}
-	response.WriteHeader(http.StatusCreated)
+	resp, err := t.taskModel.Get(request.Request.Context(), models.GetParam{
+		ID: int(taskID),
+	})
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	t.taskService.NextRuntime(resp)
+	_ = response.WriteHeaderAndEntity(http.StatusCreated, resp)
 }
 
 func (t *taskHandler) GetTask(request *restful.Request, response *restful.Response) {

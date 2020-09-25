@@ -136,7 +136,10 @@
         ],
         "responses": {
           "201": {
-            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource."
+            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource.",
+            "schema": {
+              "$ref": "#/definitions/models.Task"
+            }
           },
           "400": {
             "description": "Bad Request. It is used to indicate that incorrect parameters were passed to the request.",
@@ -528,7 +531,10 @@
         ],
         "responses": {
           "201": {
-            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource."
+            "description": "Upon success, the HTTP response shall include a Location HTTP header that contains the resource URI of the created resource.",
+            "schema": {
+              "$ref": "#/definitions/models.Host"
+            }
           },
           "400": {
             "description": "Bad Request. It is used to indicate that incorrect parameters were passed to the request.",
@@ -606,7 +612,10 @@
         ],
         "responses": {
           "201": {
-            "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource."
+            "description": "It is used to indicate nonspecific success. The response body contains a representation of the resource.",
+            "schema": {
+              "$ref": "#/definitions/models.Host"
+            }
           },
           "400": {
             "description": "Bad Request. It is used to indicate that incorrect parameters were passed to the request.",
@@ -802,19 +811,17 @@
           "type": "string",
           "format": "date-time"
         },
-        "notify_keyword": {
-          "type": "string"
-        },
         "notify_receiver_id": {
           "type": "string"
         },
+        "notify_send_id": {
+          "type": "string"
+        },
         "notify_status": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "notify_type": {
-          "type": "integer",
-          "format": "byte"
+          "type": "string"
         },
         "protocol": {
           "type": "string"
@@ -1024,6 +1031,39 @@
         }
       }
     },
+    "schema.Notify": {
+      "required": [
+        "notify_status",
+        "notify_type",
+        "notify_receiver_id",
+        "notify_send_id"
+      ],
+      "properties": {
+        "notify_receiver_id": {
+          "description": "notify receivers",
+          "type": "string"
+        },
+        "notify_send_id": {
+          "description": "notify send",
+          "type": "string"
+        },
+        "notify_status": {
+          "description": "notify status",
+          "type": "string",
+          "enum": [
+            "success",
+            "failed"
+          ]
+        },
+        "notify_type": {
+          "description": "notify type",
+          "type": "string",
+          "enum": [
+            "webhook"
+          ]
+        }
+      }
+    },
     "schema.TaskRequest": {
       "required": [
         "level",
@@ -1082,23 +1122,9 @@
           "description": "task name",
           "type": "string"
         },
-        "notify_keyword": {
-          "description": "notify keyword",
-          "type": "string"
-        },
-        "notify_receiver_id": {
-          "description": "notify receivers",
-          "type": "string"
-        },
-        "notify_status": {
+        "notify": {
           "description": "notify status",
-          "type": "integer",
-          "format": "byte"
-        },
-        "notify_type": {
-          "description": "notify type",
-          "type": "integer",
-          "format": "byte"
+          "$ref": "#/definitions/schema.Notify"
         },
         "protocol": {
           "description": "task protocol type,shell or http",
