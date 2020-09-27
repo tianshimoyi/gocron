@@ -157,13 +157,16 @@ func (t *taskStore) setHostsForTasks(ctx context.Context, tasks []*models.Task) 
 	return tasks, err
 }
 
-func (t *taskStore) Get(ctx context.Context, param models.GetParam) (*models.Task, error) {
+func (t *taskStore) Get(ctx context.Context, param models.GetTaskParam) (*models.Task, error) {
 	s := t.db.Table(new(models.Task))
 	if param.ID > 0 {
 		s = s.Where("id = ?", param.ID)
 	}
 	if param.Name != "" {
 		s = s.And("name = ?", param.Name)
+	}
+	if param.Creator != "" {
+		s = s.And("creator = ?")
 	}
 	item := models.Task{}
 	_, err := s.Get(&item)

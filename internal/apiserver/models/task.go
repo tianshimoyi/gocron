@@ -65,7 +65,7 @@ type TaskStore interface {
 	//Update(context.Context, SchemaTask) error
 	Delete(context.Context, DeleteParam) error
 	List(context.Context, ListTaskParam) ([]*Task, int64, error)
-	Get(context.Context, GetParam) (*Task, error)
+	Get(context.Context, GetTaskParam) (*Task, error)
 	Exist(context.Context, GetParam) (bool, error)
 	GetTaskHostByTaskID(context.Context, uint) ([]TaskHostDetail, error)
 	UpdateTaskStatus(context.Context, int, string) error
@@ -84,6 +84,11 @@ type ListTaskParam struct {
 	Type          string
 	Creator       string
 	RunAtInterval time.Duration
+}
+
+type GetTaskParam struct {
+	GetParam
+	Creator string
 }
 
 func (s SchemaTask) ToModelTask() *Task {

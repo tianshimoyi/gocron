@@ -12,7 +12,8 @@ import (
 type ServerRunOptions struct {
 	GenericServerRunOptions *genericoptions.ServerRunOptions
 	*config.Config
-	JwtSecret string
+	JwtSecret  string
+	SkylineUrl string
 }
 
 func NewServerRunOptions() *ServerRunOptions {
@@ -20,6 +21,7 @@ func NewServerRunOptions() *ServerRunOptions {
 		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
 		Config:                  config.New(),
 		JwtSecret:               "",
+		SkylineUrl:              "",
 	}
 
 	return s
@@ -28,6 +30,7 @@ func NewServerRunOptions() *ServerRunOptions {
 func (s *ServerRunOptions) Flags() (fss cliflag.NamedFlagSets) {
 	fs := fss.FlagSet("generic")
 	fs.StringVar(&s.JwtSecret, "jwt-secret", s.JwtSecret, "jwt secret for authenticate")
+	fs.StringVar(&s.SkylineUrl, "skyline-url", s.SkylineUrl, "skyline url for authnz")
 	s.GenericServerRunOptions.AddFlags(fs, s.GenericServerRunOptions)
 	s.DatabaseOptions.AddFlags(fss.FlagSet("db"), s.DatabaseOptions)
 	s.NotifyOptions.AddFlags(fss.FlagSet("notify"))

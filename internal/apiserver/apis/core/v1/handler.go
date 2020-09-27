@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/emicklei/go-restful"
 	"github.com/x893675/gocron/internal/apiserver/constants"
@@ -78,8 +79,10 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 	default:
 		klog.V(2).Infof("only create task record, do nothing for planjob")
 	}
-	resp, err := t.taskModel.Get(request.Request.Context(), models.GetParam{
-		ID: int(taskID),
+	resp, err := t.taskModel.Get(request.Request.Context(), models.GetTaskParam{
+		GetParam: models.GetParam{
+			ID: int(taskID),
+		},
 	})
 	if err != nil {
 		restplus.HandleInternalError(response, request, err)
@@ -91,8 +94,17 @@ func (t *taskHandler) CreateTask(request *restful.Request, response *restful.Res
 
 func (t *taskHandler) GetTask(request *restful.Request, response *restful.Response) {
 	tsk := request.PathParameter("task")
-	var param models.GetParam
-	parseIdOrName(tsk, &param)
+	var param models.GetTaskParam
+	parseIdOrName(tsk, &param.GetParam)
+	if role, ok := request.Attribute(constants.GoCronUserRole).(string); ok && role != constants.UserAdmin {
+		creator := request.Attribute(constants.GoCronUsernameHeader).(string)
+		if creator != "" {
+			param.Creator = creator
+		} else {
+			restplus.HandleForbidden(response, request, errors.New("no permission to list others tasks"))
+			return
+		}
+	}
 	result, err := t.taskModel.Get(request.Request.Context(), param)
 	if err != nil {
 		restplus.HandleInternalError(response, request, err)
@@ -121,6 +133,16 @@ func (t *taskHandler) ListTask(request *restful.Request, response *restful.Respo
 		Tag:      restplus.GetStringValueWithDefault(request, "tag", ""),
 		Creator:  restplus.GetStringValueWithDefault(request, "creator", ""),
 	}
+	if role, ok := request.Attribute(constants.GoCronUserRole).(string); ok && role != constants.UserAdmin {
+		creator := request.Attribute(constants.GoCronUsernameHeader).(string)
+		if creator != "" {
+			param.Creator = creator
+		} else {
+			restplus.HandleForbidden(response, request, errors.New("no permission to list others tasks"))
+			return
+		}
+	}
+
 	result, total, err := t.taskModel.List(request.Request.Context(), param)
 	if err != nil {
 		restplus.HandleInternalError(response, request, err)
@@ -142,7 +164,16 @@ func (t *taskHandler) DeleteTask(request *restful.Request, response *restful.Res
 		restplus.HandleBadRequest(response, request, fmt.Errorf("only support delete task by id"))
 		return
 	}
-	err := t.taskModel.Delete(request.Request.Context(), models.DeleteParam(param))
+	allow, err := t.checkDataPermission(request, param.ID)
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	if !allow {
+		restplus.HandleForbidden(response, request, errors.New("no permission to delete others tasks"))
+		return
+	}
+	err = t.taskModel.Delete(request.Request.Context(), models.DeleteParam(param))
 	if err != nil {
 		restplus.HandleInternalError(response, request, err)
 		return
@@ -158,7 +189,16 @@ func (t *taskHandler) EnableTask(request *restful.Request, response *restful.Res
 		restplus.HandleBadRequest(response, request, fmt.Errorf("only support delete task by id"))
 		return
 	}
-	err := t.taskModel.UpdateTaskStatus(request.Request.Context(), id, models.TaskStatusEnabled)
+	allow, err := t.checkDataPermission(request, id)
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	if !allow {
+		restplus.HandleForbidden(response, request, errors.New("no permission to enable others tasks"))
+		return
+	}
+	err = t.taskModel.UpdateTaskStatus(request.Request.Context(), id, models.TaskStatusEnabled)
 	if err != nil {
 		restplus.HandleInternalError(response, request, err)
 		return
@@ -174,7 +214,16 @@ func (t *taskHandler) DisableTask(request *restful.Request, response *restful.Re
 		restplus.HandleBadRequest(response, request, fmt.Errorf("only support delete task by id"))
 		return
 	}
-	err := t.taskModel.UpdateTaskStatus(request.Request.Context(), id, models.TaskStatusDisabled)
+	allow, err := t.checkDataPermission(request, id)
+	if err != nil {
+		restplus.HandleInternalError(response, request, err)
+		return
+	}
+	if !allow {
+		restplus.HandleForbidden(response, request, errors.New("no permission to enable others tasks"))
+		return
+	}
+	err = t.taskModel.UpdateTaskStatus(request.Request.Context(), id, models.TaskStatusDisabled)
 	if err != nil {
 		restplus.HandleInternalError(response, request, err)
 		return
@@ -260,8 +309,10 @@ func parseIdOrName(param string, out *models.GetParam) {
 }
 
 func (t *taskHandler) addTaskToTimer(id int) {
-	job, err := t.taskModel.Get(context.TODO(), models.GetParam{
-		ID: id,
+	job, err := t.taskModel.Get(context.TODO(), models.GetTaskParam{
+		GetParam: models.GetParam{
+			ID: id,
+		},
 	})
 	if err != nil {
 		klog.Error(err)
@@ -271,12 +322,41 @@ func (t *taskHandler) addTaskToTimer(id int) {
 }
 
 func (t *taskHandler) runJob(id int) {
-	job, err := t.taskModel.Get(context.TODO(), models.GetParam{
-		ID: id,
+	job, err := t.taskModel.Get(context.TODO(), models.GetTaskParam{
+		GetParam: models.GetParam{
+			ID: id,
+		},
 	})
 	if err != nil {
 		klog.Error(err)
 		return
 	}
 	t.taskService.Run(job)
+}
+
+func (t *taskHandler) checkDataPermission(req *restful.Request, taskId int) (bool, error) {
+	if role, ok := req.Attribute(constants.GoCronUserRole).(string); ok && role != constants.UserAdmin {
+		creator := req.Attribute(constants.GoCronUsernameHeader).(string)
+		if creator != "" {
+			ret, err := t.taskModel.Get(req.Request.Context(), models.GetTaskParam{
+				GetParam: models.GetParam{
+					ID: taskId,
+				},
+				Creator: creator,
+			})
+			if err != nil {
+				return false, err
+			}
+			if ret.Name != "" {
+				return true, nil
+			} else {
+				return false, nil
+			}
+		} else {
+			return false, nil
+		}
+	} else {
+		// authnz not enable or user is admin
+		return true, nil
+	}
 }

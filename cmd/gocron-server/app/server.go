@@ -75,8 +75,9 @@ func Run(s *options.ServerRunOptions, stopCh <-chan struct{}) error {
 
 func NewApiServer(s *options.ServerRunOptions, stopCh <-chan struct{}) (*apiserver.APIServer, error) {
 	apiServer := &apiserver.APIServer{
-		Config:    s.Config,
-		JwtSecret: s.JwtSecret,
+		Config:     s.Config,
+		JwtSecret:  s.JwtSecret,
+		SkylineUrl: s.SkylineUrl,
 	}
 
 	dbClient, err := database.NewDatabaseClient(s.DatabaseOptions, stopCh)

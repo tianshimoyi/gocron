@@ -14,4 +14,7 @@ const (
 	HTTP414              = "It is used to indicate that the server is refusing to process the request because the request URI is longer than the server is willing or able to process."
 	HTTP500              = "Internal Error"
 	GoCronUsernameHeader = "X-GOCRON-UID"
+	GoCronUserRole       = "X-GOCRON-ROLE"
+	UserAdmin            = "admin"
+	UserNormal           = "normal"
 )

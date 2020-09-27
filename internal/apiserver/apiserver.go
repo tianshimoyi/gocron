@@ -10,9 +10,12 @@ import (
 	"github.com/x893675/gocron/pkg/client/database"
 	"github.com/x893675/gocron/pkg/config"
 	"github.com/x893675/gocron/pkg/server/filter"
+	"github.com/x893675/gocron/pkg/server/filter/authn/bearertoken"
+	"github.com/x893675/gocron/pkg/server/filter/authnz/skyline"
 	urlruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/klog/v2"
 	"net/http"
+	"time"
 )
 
 type APIServer struct {
@@ -28,6 +31,8 @@ type APIServer struct {
 	TaskService *task.Task
 	// jwt secret
 	JwtSecret string
+	//
+	SkylineUrl string
 }
 
 func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
@@ -39,8 +44,11 @@ func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
 		filter.LogStackOnRecover(panicReson, httpWriter)
 	})
 	if s.JwtSecret != "" {
-		filter.SetupSecret(s.JwtSecret)
-		s.container.Filter(filter.AuthenticateValidate)
+		bearertoken.SetupSecret(s.JwtSecret)
+		s.container.Filter(bearertoken.AuthenticateValidate)
+	} else if s.SkylineUrl != "" {
+		skyline.SetupSecret(s.SkylineUrl, 3*time.Second)
+		s.container.Filter(skyline.AuthnzValidate)
 	} else {
 		klog.V(2).Infof("jwt secret is null, not init authenticate middleware")
 	}

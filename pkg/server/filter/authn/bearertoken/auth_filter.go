@@ -1,4 +1,4 @@
-package filter
+package bearertoken
 
 import (
 	"fmt"
