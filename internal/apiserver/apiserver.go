@@ -32,7 +32,8 @@ type APIServer struct {
 	// jwt secret
 	JwtSecret string
 	//
-	SkylineUrl string
+	SkylineUrl           string
+	SkylineAdminRoleName string
 }
 
 func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
@@ -48,6 +49,7 @@ func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
 		s.container.Filter(bearertoken.AuthenticateValidate)
 	} else if s.SkylineUrl != "" {
 		skyline.SetupSecret(s.SkylineUrl, 3*time.Second)
+		skyline.SetupAdminRoleName(s.SkylineAdminRoleName)
 		s.container.Filter(skyline.AuthnzValidate)
 	} else {
 		klog.V(2).Infof("jwt secret is null, not init authenticate middleware")

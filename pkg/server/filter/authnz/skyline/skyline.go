@@ -30,12 +30,16 @@ var (
 		"normal:/api/core/v1:PATCH":  {},
 		"normal:/api/core/v1:POST":   {},
 	}
-	roleAdmin = "admin"
+	roleAdmin = ""
 )
 
 func SetupSecret(url string, timeout time.Duration) {
 	skylineUrl = url
 	requestTimeout = timeout
+}
+
+func SetupAdminRoleName(name string) {
+	roleAdmin = name
 }
 
 type User struct {
