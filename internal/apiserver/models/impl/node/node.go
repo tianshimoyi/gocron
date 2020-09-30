@@ -97,3 +97,18 @@ func (t *hostStore) Exist(ctx context.Context, param models.GetParam) (bool, err
 	}
 	return s.Exist(new(models.Host))
 }
+
+func (t *hostStore) BatchInsert(ctx context.Context, hosts []*models.Host) error {
+	session := t.db.NewSession()
+	defer session.Close()
+	if err := session.Begin(); err != nil {
+		return err
+	}
+	for i := range hosts {
+		_, err := session.Insert(hosts[i])
+		if err != nil {
+			return err
+		}
+	}
+	return session.Commit()
+}

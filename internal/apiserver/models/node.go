@@ -22,6 +22,7 @@ type HostStore interface {
 	List(context.Context, ListHostParam) ([]*Host, int64, error)
 	Get(context.Context, GetParam) (*Host, error)
 	Exist(context.Context, GetParam) (bool, error)
+	BatchInsert(context.Context, []*Host) error
 }
 
 type BaseListParam struct {

@@ -2,10 +2,12 @@ package apiserver
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/emicklei/go-restful"
 	coreV1 "github.com/x893675/gocron/internal/apiserver/apis/core/v1"
 	systemV1 "github.com/x893675/gocron/internal/apiserver/apis/system/v1"
 	"github.com/x893675/gocron/internal/apiserver/models"
+	hostImpl "github.com/x893675/gocron/internal/apiserver/models/impl/node"
 	"github.com/x893675/gocron/internal/apiserver/service/task"
 	"github.com/x893675/gocron/pkg/client/database"
 	"github.com/x893675/gocron/pkg/config"
@@ -15,6 +17,7 @@ import (
 	urlruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/klog/v2"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -34,6 +37,7 @@ type APIServer struct {
 	//
 	SkylineUrl           string
 	SkylineAdminRoleName string
+	InitAgentHostPath    string
 }
 
 func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
@@ -63,6 +67,10 @@ func (s *APIServer) PrepareRun(stopCh <-chan struct{}) error {
 	if err != nil {
 		return err
 	}
+	if err = s.InitAgentHosts(); err != nil {
+		klog.Errorf("init agent hosts error: %v", err)
+		return err
+	}
 	return s.TaskService.Initialize(stopCh)
 }
 
@@ -90,4 +98,46 @@ func (s *APIServer) InstallAPIs() {
 
 func (s *APIServer) Migration() error {
 	return s.Db.DB().Sync2(new(models.Host), new(models.Task), new(models.TaskLog), new(models.TaskHost))
+}
+
+func (s *APIServer) InitAgentHosts() error {
+	if s.InitAgentHostPath == "" {
+		klog.V(1).Infof("no agent hosts init...")
+		return nil
+	}
+	hostModel := hostImpl.New(s.Db)
+	_, total, err := hostModel.List(context.TODO(), models.ListHostParam{
+		BaseListParam: models.BaseListParam{
+			Offset: 0,
+			Limit:  10,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if total > 0 {
+		klog.V(1).Infof("hosts has already exist, not init again...")
+		return nil
+	}
+	data, err := readHostsData(s.InitAgentHostPath)
+	if err != nil {
+		return err
+	}
+	if err = hostModel.BatchInsert(context.TODO(), data); err != nil {
+		return err
+	}
+	return nil
+}
+
+func readHostsData(path string) ([]*models.Host, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	var data []*models.Host
+	if err = json.NewDecoder(file).Decode(&data); err != nil {
+		return nil, err
+	}
+	return data, nil
 }

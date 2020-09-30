@@ -15,6 +15,7 @@ type ServerRunOptions struct {
 	JwtSecret            string
 	SkylineUrl           string
 	SkylineAdminRoleName string
+	InitAgentPath        string
 }
 
 func NewServerRunOptions() *ServerRunOptions {
@@ -24,6 +25,7 @@ func NewServerRunOptions() *ServerRunOptions {
 		JwtSecret:               "",
 		SkylineUrl:              "",
 		SkylineAdminRoleName:    "admin",
+		InitAgentPath:           "",
 	}
 
 	return s
@@ -34,6 +36,7 @@ func (s *ServerRunOptions) Flags() (fss cliflag.NamedFlagSets) {
 	fs.StringVar(&s.JwtSecret, "jwt-secret", s.JwtSecret, "jwt secret for authenticate")
 	fs.StringVar(&s.SkylineUrl, "skyline-url", s.SkylineUrl, "skyline url for authnz")
 	fs.StringVar(&s.SkylineAdminRoleName, "skyline-admin-role-name", s.SkylineAdminRoleName, "skyline authnz admin role name, default is admin")
+	fs.StringVar(&s.InitAgentPath, "init-agent-path", s.InitAgentPath, "agent hosts init file path, default is ''")
 	s.GenericServerRunOptions.AddFlags(fs, s.GenericServerRunOptions)
 	s.DatabaseOptions.AddFlags(fss.FlagSet("db"), s.DatabaseOptions)
 	s.NotifyOptions.AddFlags(fss.FlagSet("notify"))

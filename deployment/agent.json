@@ -1,0 +1,8 @@
+[
+  {
+    "name": "node1",
+    "alias": "test",
+    "port": 8080,
+    "addr": "localhost"
+  }
+]
